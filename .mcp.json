@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "jupyter-executor": {
+      "command": "ml-jupyter-mcp",
+      "args": [],
+      "env": {}
+    }
+  }
+}
