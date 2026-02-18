@@ -7,4 +7,5 @@ from penpal.core.transforms import (
     rotate_x, rotate_y, rotate_z, rotate_axis, translate3d, scale3d,
     apply,
 )
+from penpal.core.mesh import Mesh
 from penpal.core.units import to_inches, from_inches, convert

@@ -13,15 +13,7 @@ if TYPE_CHECKING:
 
 
 def render(drawing: Drawing, ax=None, figsize=None, grid=None, **kwargs):
-    """Render a Drawing using matplotlib.
-
-    Parameters
-    ----------
-    drawing : Drawing
-    ax : matplotlib Axes, optional
-    figsize : tuple, optional — defaults to (width, height) from drawing
-    grid : bool, optional — override drawing.show_grid
-    """
+    """Render a Drawing using matplotlib."""
     if figsize is None:
         figsize = (drawing.width, drawing.height)
 
@@ -32,9 +24,11 @@ def render(drawing: Drawing, ax=None, figsize=None, grid=None, **kwargs):
 
     show_grid = grid if grid is not None else drawing.show_grid
 
-    # Draw grid lines first (behind everything)
+    x0, x1 = drawing.x_range
+    y0, y1 = drawing.y_range
+
     if show_grid:
-        _draw_grid(ax, drawing.width, drawing.height)
+        _draw_grid(ax, drawing)
 
     # Draw each layer
     for layer in drawing.layers:
@@ -50,8 +44,8 @@ def render(drawing: Drawing, ax=None, figsize=None, grid=None, **kwargs):
         )
         ax.add_collection(lc)
 
-    ax.set_xlim(0, drawing.width)
-    ax.set_ylim(0, drawing.height)
+    ax.set_xlim(x0, x1)
+    ax.set_ylim(y0, y1)
     ax.set_aspect("equal")
     ax.invert_yaxis()
     ax.set_xlabel(drawing.units)
@@ -61,22 +55,29 @@ def render(drawing: Drawing, ax=None, figsize=None, grid=None, **kwargs):
     return fig, ax
 
 
-def _draw_grid(ax, width, height):
+def _draw_grid(ax, drawing):
     """Draw reference grid lines."""
-    # Light grid every 1 unit
-    for x in np.arange(0, width + 0.01, 1):
+    x0, x1 = drawing.x_range
+    y0, y1 = drawing.y_range
+
+    for x in np.arange(np.ceil(x0), x1 + 0.01, 1):
         ax.axvline(x, color="#e0e0e0", linewidth=0.3, zorder=0)
-    for y in np.arange(0, height + 0.01, 1):
+    for y in np.arange(np.ceil(y0), y1 + 0.01, 1):
         ax.axhline(y, color="#e0e0e0", linewidth=0.3, zorder=0)
-    # Heavier grid every 5 units
-    for x in np.arange(0, width + 0.01, 5):
+    for x in np.arange(np.ceil(x0 / 5) * 5, x1 + 0.01, 5):
         ax.axvline(x, color="#c0c0c0", linewidth=0.6, zorder=0)
-    for y in np.arange(0, height + 0.01, 5):
+    for y in np.arange(np.ceil(y0 / 5) * 5, y1 + 0.01, 5):
         ax.axhline(y, color="#c0c0c0", linewidth=0.6, zorder=0)
+
+    # Origin crosshair if centered
+    if drawing.center:
+        ax.axhline(0, color="#aaaaaa", linewidth=0.8, zorder=0)
+        ax.axvline(0, color="#aaaaaa", linewidth=0.8, zorder=0)
+
     # Border
     ax.plot(
-        [0, width, width, 0, 0],
-        [0, 0, height, height, 0],
+        [x0, x1, x1, x0, x0],
+        [y0, y0, y1, y1, y0],
         color="#999999",
         linewidth=1.0,
         zorder=0,

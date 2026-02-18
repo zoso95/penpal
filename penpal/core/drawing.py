@@ -15,19 +15,74 @@ from penpal.core.layer import Layer, LayerStyle
 from penpal.core.paths import Paths
 from penpal.core.types import Lines
 
+# Physical pen width defaults (in inches)
+# 0.3mm Micron = ~0.012in, 0.5mm = ~0.020in
+PEN_WIDTH_MM = {
+    0.2: 0.2 / 25.4,
+    0.3: 0.3 / 25.4,
+    0.5: 0.5 / 25.4,
+    0.8: 0.8 / 25.4,
+    1.0: 1.0 / 25.4,
+}
+DEFAULT_PEN_WIDTH_IN = 0.3 / 25.4  # 0.3mm Micron pen
+
+
+def pen_width(mm: float) -> float:
+    """Convert pen width from mm to inches (the internal unit)."""
+    return mm / 25.4
+
 
 class Drawing:
     """A drawing with physical dimensions and named layers.
 
     All workflows (2D, 3D, CV, RL) produce a Drawing.
+
+    Parameters
+    ----------
+    width, height : float
+        Physical dimensions in the given units.
+    units : str
+        'in', 'mm', 'cm', etc.
+    show_grid : bool
+        Show reference grid in notebook display.
+    center : bool
+        If True, coordinate origin is at center of page.
+        x ranges from -width/2 to width/2, y from -height/2 to height/2.
     """
 
-    def __init__(self, width: float, height: float, units: str = "in", show_grid: bool = True):
+    # TODO: add margin parameter — margin=0.5 would reserve 0.25in on each side,
+    # adjusting x_range/y_range and auto-clipping all layers to the drawable area.
+
+    def __init__(self, width: float, height: float, units: str = "in",
+                 show_grid: bool = True, center: bool = False):
         self.width = width
         self.height = height
         self.units = units
         self.show_grid = show_grid
+        self.center = center
         self._layers: OrderedDict[str, Layer] = OrderedDict()
+
+    @property
+    def x_range(self) -> tuple:
+        """(xmin, xmax) in drawing coordinates."""
+        if self.center:
+            return (-self.width / 2, self.width / 2)
+        return (0, self.width)
+
+    @property
+    def y_range(self) -> tuple:
+        """(ymin, ymax) in drawing coordinates."""
+        if self.center:
+            return (-self.height / 2, self.height / 2)
+        return (0, self.height)
+
+    @property
+    def bounds_polygon(self) -> np.ndarray:
+        """Page boundary as a closed polygon (for clipping)."""
+        x0, x1 = self.x_range
+        y0, y1 = self.y_range
+        return np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]],
+                        dtype=np.float64)
 
     def layer(self, name: str, **style_kwargs) -> Layer:
         """Get or create a named layer. Returns the Layer for chaining."""

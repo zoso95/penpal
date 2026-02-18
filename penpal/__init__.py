@@ -1,8 +1,10 @@
 """penpal — Unified plotter art library."""
 
-from penpal.core.drawing import Drawing
+from penpal.core.drawing import Drawing, pen_width
 from penpal.core.layer import Layer, LayerStyle
 from penpal.core.paths import Paths
+from penpal.core.mesh import Mesh
+from penpal.core import noise
 from penpal.core.types import Lines, Polyline
 from penpal.core.transforms import (
     rotate, reflect, translate, scale,
@@ -10,7 +12,9 @@ from penpal.core.transforms import (
     apply,
 )
 
-# Submodules available as penpal.gen, penpal.io, etc.
+# Submodules available as penpal.gen, penpal.sampling, penpal.shading, etc.
 from penpal import gen
+from penpal import sampling
+from penpal import shading
 
 __version__ = "0.1.0"
