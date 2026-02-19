@@ -114,6 +114,38 @@ class TestPathsLineOps:
         assert len(result) == 4  # indices 0, 3, 6, 9
 
 
+class TestPathsReflect:
+    def test_reflect_x_axis(self):
+        p = Paths([np.array([[1, 1]])])
+        reflected = p.reflect(0, point=(0, 0))
+        np.testing.assert_allclose(reflected.lines[0][0], [1, -1], atol=1e-10)
+
+    def test_reflect_y_axis(self):
+        p = Paths([np.array([[1, 1]])])
+        reflected = p.reflect(90, point=(0, 0))
+        np.testing.assert_allclose(reflected.lines[0][0], [-1, 1], atol=1e-10)
+
+    def test_mirror_x(self):
+        p = Paths([np.array([[1, 2]])])
+        mirrored = p.mirror("x")
+        np.testing.assert_allclose(mirrored.lines[0][0], [1, -2], atol=1e-10)
+
+    def test_mirror_y(self):
+        p = Paths([np.array([[1, 2]])])
+        mirrored = p.mirror("y")
+        np.testing.assert_allclose(mirrored.lines[0][0], [-1, 2], atol=1e-10)
+
+    def test_mirror_diagonal(self):
+        p = Paths([np.array([[1, 0]])])
+        mirrored = p.mirror("diagonal")
+        np.testing.assert_allclose(mirrored.lines[0][0], [0, 1], atol=1e-10)
+
+    def test_reflect_immutable(self):
+        p = Paths([np.array([[1, 1]])])
+        _ = p.reflect(0)
+        np.testing.assert_allclose(p.lines[0][0], [1, 1])
+
+
 class TestPathsRepr:
     def test_repr(self):
         p = Paths([np.array([[0, 0], [1, 1]])])

@@ -68,15 +68,11 @@ def _draw_grid(ax, drawing):
         ax.axvline(x, color="#e0e0e0", linewidth=0.3, zorder=0)
     for y in np.arange(np.ceil(y0), y1 + 0.01, 1):
         ax.axhline(y, color="#e0e0e0", linewidth=0.3, zorder=0)
-    for x in np.arange(np.ceil(x0 / 5) * 5, x1 + 0.01, 5):
-        ax.axvline(x, color="#c0c0c0", linewidth=0.6, zorder=0)
-    for y in np.arange(np.ceil(y0 / 5) * 5, y1 + 0.01, 5):
-        ax.axhline(y, color="#c0c0c0", linewidth=0.6, zorder=0)
-
-    # Origin crosshair if centered
-    if drawing.center:
-        ax.axhline(0, color="#aaaaaa", linewidth=0.8, zorder=0)
-        ax.axvline(0, color="#aaaaaa", linewidth=0.8, zorder=0)
+    # Center crosshair — always show page center
+    cx = (x0 + x1) / 2
+    cy = (y0 + y1) / 2
+    ax.axhline(cy, color="#c0c0c0", linewidth=0.6, zorder=0)
+    ax.axvline(cx, color="#c0c0c0", linewidth=0.6, zorder=0)
 
     # Border
     ax.plot(

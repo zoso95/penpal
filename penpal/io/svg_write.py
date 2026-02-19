@@ -79,19 +79,13 @@ def _grid_svg(drawing, precision: int = 4) -> str:
         lines.append(f'    <line x1="{x0:.{precision}f}" y1="{y:.{precision}f}" x2="{x1:.{precision}f}" y2="{y:.{precision}f}"/>')
     lines.append("  </g>")
 
-    lines.append('  <g id="grid-major" stroke="#c0c0c0" stroke-width="0.02" fill="none">')
-    for x in np.arange(np.ceil(x0 / 5) * 5, x1 + 0.01, 5):
-        lines.append(f'    <line x1="{x:.{precision}f}" y1="{y0:.{precision}f}" x2="{x:.{precision}f}" y2="{y1:.{precision}f}"/>')
-    for y in np.arange(np.ceil(y0 / 5) * 5, y1 + 0.01, 5):
-        lines.append(f'    <line x1="{x0:.{precision}f}" y1="{y:.{precision}f}" x2="{x1:.{precision}f}" y2="{y:.{precision}f}"/>')
+    # Center crosshair — always show page center
+    cx = (x0 + x1) / 2
+    cy = (y0 + y1) / 2
+    lines.append('  <g id="grid-center" stroke="#c0c0c0" stroke-width="0.015" fill="none">')
+    lines.append(f'    <line x1="{x0:.{precision}f}" y1="{cy:.{precision}f}" x2="{x1:.{precision}f}" y2="{cy:.{precision}f}"/>')
+    lines.append(f'    <line x1="{cx:.{precision}f}" y1="{y0:.{precision}f}" x2="{cx:.{precision}f}" y2="{y1:.{precision}f}"/>')
     lines.append("  </g>")
-
-    # Origin crosshair if centered
-    if drawing.center:
-        lines.append('  <g id="grid-origin" stroke="#aaaaaa" stroke-width="0.015" fill="none">')
-        lines.append(f'    <line x1="{x0:.{precision}f}" y1="0" x2="{x1:.{precision}f}" y2="0"/>')
-        lines.append(f'    <line x1="0" y1="{y0:.{precision}f}" x2="0" y2="{y1:.{precision}f}"/>')
-        lines.append("  </g>")
 
     return "\n".join(lines)
 

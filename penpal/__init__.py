@@ -16,5 +16,6 @@ from penpal.core.transforms import (
 from penpal import gen
 from penpal import sampling
 from penpal import shading
+from penpal import symmetry
 
 __version__ = "0.1.0"

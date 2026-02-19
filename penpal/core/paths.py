@@ -49,6 +49,17 @@ class Paths:
 
         return self.transform(scale(sx, sy, center=center))
 
+    def reflect(self, angle: float = 0, point=None, degrees: bool = True) -> Paths:
+        """Reflect across a line at the given angle through point (default origin)."""
+        from penpal.core.transforms import reflect
+
+        return self.transform(reflect(angle, point=point, degrees=degrees))
+
+    def mirror(self, axis: str = "x", center=None) -> Paths:
+        """Mirror across a named axis: 'x' (horizontal), 'y' (vertical), 'diagonal'."""
+        angles = {"x": 0, "y": 90, "xy": 45, "diagonal": 45}
+        return self.reflect(angles[axis], point=center)
+
     # --- Spatial ops (return new Paths) ---
 
     def clip(self, polygon: np.ndarray) -> Paths:
