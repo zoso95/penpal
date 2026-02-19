@@ -84,20 +84,39 @@ class Drawing:
         return np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]],
                         dtype=np.float64)
 
-    def layer(self, name: str, **style_kwargs) -> Layer:
-        """Get or create a named layer. Returns the Layer for chaining."""
+    def layer(self, name: str, guide: bool = False, **style_kwargs) -> Layer:
+        """Get or create a named layer. Returns the Layer for chaining.
+
+        Parameters
+        ----------
+        name : str
+            Layer name (identity).
+        guide : bool
+            If True, this layer is a guide/overlay — displayed in show()
+            and notebook preview but excluded from save(). Use for reference
+            grids, flow field arrows, construction lines, etc.
+        **style_kwargs
+            color, linewidth, alpha for LayerStyle.
+        """
         if name not in self._layers:
-            self._layers[name] = Layer(name, **style_kwargs)
-        elif style_kwargs:
-            # Update style if kwargs provided on existing layer
+            self._layers[name] = Layer(name, guide=guide, **style_kwargs)
+        elif style_kwargs or guide:
+            layer = self._layers[name]
+            if guide:
+                layer.guide = True
             for k, v in style_kwargs.items():
-                setattr(self._layers[name].style, k, v)
+                setattr(layer.style, k, v)
         return self._layers[name]
 
     @property
     def layers(self) -> List[Layer]:
-        """Ordered list of layers."""
+        """Ordered list of all layers (including guides)."""
         return list(self._layers.values())
+
+    @property
+    def output_layers(self) -> List[Layer]:
+        """Ordered list of non-guide layers (for save/export)."""
+        return [l for l in self._layers.values() if not l.guide]
 
     def flatten(self) -> Layer:
         """Merge all layers into one."""
@@ -118,10 +137,30 @@ class Drawing:
         from penpal.backends.matplotlib import render
         return render(self, **kwargs)
 
-    def save(self, path: str, **kwargs):
-        """Save as SVG."""
+    def save(self, path: str, provenance: bool = True, params: dict = None,
+             include_guides: bool = False, **kwargs):
+        """Save as SVG, with optional provenance (source code + metadata).
+
+        Parameters
+        ----------
+        path : str
+            Output SVG path (e.g. 'output/piece.svg').
+        provenance : bool
+            If True (default), also saves {base}_provenance.json and
+            {base}_source.py alongside the SVG.
+        params : dict, optional
+            User parameters to record in provenance (seeds, densities, etc.).
+        include_guides : bool
+            If True, also export guide layers. Default False (guides are
+            display-only).
+        """
         from penpal.io.svg_write import save_drawing
-        save_drawing(self, path, **kwargs)
+        save_drawing(self, path, include_guides=include_guides, **kwargs)
+
+        if provenance:
+            from penpal.io.provenance import save_provenance
+            svg_path = path if path.endswith(".svg") else path + ".svg"
+            save_provenance(self, svg_path, params=params)
 
     def save_layers(self, path: str, **kwargs):
         """Save each layer as a separate SVG."""

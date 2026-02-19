@@ -30,6 +30,10 @@ def render(drawing: Drawing, ax=None, figsize=None, grid=None, **kwargs):
     if show_grid:
         _draw_grid(ax, drawing)
 
+    # Convert drawing-unit linewidths to matplotlib points.
+    # figsize matches drawing dimensions, so 1 drawing unit = 1 figure inch = 72 pt.
+    lw_scale = (figsize[0] / (x1 - x0)) * 72
+
     # Draw each layer
     for layer in drawing.layers:
         if not layer.lines:
@@ -38,7 +42,7 @@ def render(drawing: Drawing, ax=None, figsize=None, grid=None, **kwargs):
         lc = LineCollection(
             segments,
             colors=layer.style.color,
-            linewidths=layer.style.linewidth,
+            linewidths=layer.style.linewidth * lw_scale,
             alpha=layer.style.alpha,
             zorder=2,
         )

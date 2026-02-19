@@ -24,10 +24,23 @@ class LayerStyle:
 
 
 class Layer:
-    """A named layer containing Paths with a visual style."""
+    """A named layer containing Paths with a visual style.
 
-    def __init__(self, name: str, **style_kwargs):
+    Parameters
+    ----------
+    name : str
+        Layer identifier.
+    guide : bool
+        If True, this is a guide/overlay layer — rendered in show() and
+        notebook preview but excluded from save(). Use for reference grids,
+        flow field arrows, construction lines, etc.
+    **style_kwargs
+        Passed to LayerStyle (color, linewidth, alpha).
+    """
+
+    def __init__(self, name: str, guide: bool = False, **style_kwargs):
         self.name = name
+        self.guide = guide
         self.paths = Paths()
         self.style = LayerStyle(**style_kwargs)
 

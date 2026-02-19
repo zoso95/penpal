@@ -13,8 +13,16 @@ if TYPE_CHECKING:
     from penpal.core.drawing import Drawing
 
 
-def to_svg_string(drawing: Drawing, grid: bool = False, precision: int = 4) -> str:
-    """Generate SVG string from a Drawing."""
+def to_svg_string(drawing: Drawing, grid: bool = False, precision: int = 4,
+                   include_guides: bool = True) -> str:
+    """Generate SVG string from a Drawing.
+
+    Parameters
+    ----------
+    include_guides : bool
+        If True (default), include guide layers in the SVG output.
+        Set to False when saving for plotter output.
+    """
     w, h, units = drawing.width, drawing.height, drawing.units
     x0, _ = drawing.x_range
     y0, _ = drawing.y_range
@@ -30,7 +38,8 @@ def to_svg_string(drawing: Drawing, grid: bool = False, precision: int = 4) -> s
     if grid:
         parts.append(_grid_svg(drawing, precision))
 
-    for layer in drawing.layers:
+    layers = drawing.layers if include_guides else drawing.output_layers
+    for layer in layers:
         style = layer.style
         parts.append(
             f'  <g inkscape:groupmode="layer" inkscape:label="{layer.name}"'
@@ -87,12 +96,15 @@ def _grid_svg(drawing, precision: int = 4) -> str:
     return "\n".join(lines)
 
 
-def save_drawing(drawing: Drawing, path: str, **kwargs):
-    """Save a Drawing as SVG file."""
+def save_drawing(drawing: Drawing, path: str, include_guides: bool = False, **kwargs):
+    """Save a Drawing as SVG file.
+
+    Guide layers are excluded by default (they're for display only).
+    """
     if not path.endswith(".svg"):
         path = path + ".svg"
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    svg = to_svg_string(drawing, **kwargs)
+    svg = to_svg_string(drawing, include_guides=include_guides, **kwargs)
     with open(path, "w") as f:
         f.write(svg)
 

@@ -62,6 +62,65 @@ class Mesh:
         yg = cy + rg * np.sin(ag)
         return cls(xg, yg, topology="polar")
 
+    # --- Spatial transforms (return new Mesh) ---
+
+    def translate(self, dx: float, dy: float) -> Mesh:
+        """Translate all vertices."""
+        return Mesh(self.x + dx, self.y + dy, self.topology)
+
+    def rotate(self, angle: float, center=None, degrees: bool = True) -> Mesh:
+        """Rotate all vertices around a center point.
+
+        angle : float
+            Rotation angle (degrees by default).
+        center : (cx, cy), optional
+            Center of rotation. Defaults to mesh centroid.
+        """
+        if degrees:
+            angle = np.radians(angle)
+        if center is None:
+            cx, cy = self.x.mean(), self.y.mean()
+        else:
+            cx, cy = center
+        dx = self.x - cx
+        dy = self.y - cy
+        cos_a, sin_a = np.cos(angle), np.sin(angle)
+        nx = cx + dx * cos_a - dy * sin_a
+        ny = cy + dx * sin_a + dy * cos_a
+        return Mesh(nx, ny, self.topology)
+
+    def scale(self, sx: float, sy: float = None, center=None) -> Mesh:
+        """Scale all vertices from a center point.
+
+        sx, sy : float
+            Scale factors. If sy is None, uniform scale.
+        center : (cx, cy), optional
+            Center of scaling. Defaults to mesh centroid.
+        """
+        if sy is None:
+            sy = sx
+        if center is None:
+            cx, cy = self.x.mean(), self.y.mean()
+        else:
+            cx, cy = center
+        nx = cx + (self.x - cx) * sx
+        ny = cy + (self.y - cy) * sy
+        return Mesh(nx, ny, self.topology)
+
+    def mirror(self, axis: str = 'x', center=None) -> Mesh:
+        """Mirror/reflect across an axis.
+
+        axis : 'x' (flip horizontally) or 'y' (flip vertically).
+        """
+        if center is None:
+            cx, cy = self.x.mean(), self.y.mean()
+        else:
+            cx, cy = center
+        if axis == 'x':
+            return Mesh(2 * cx - self.x, self.y.copy(), self.topology)
+        else:
+            return Mesh(self.x.copy(), 2 * cy - self.y, self.topology)
+
     # --- Warps (return new Mesh) ---
 
     def warp(self, func: Callable, pin_edges: bool = False) -> Mesh:
@@ -95,6 +154,79 @@ class Mesh:
         from penpal.core.noise import simplex
         return self.warp(simplex(amplitude, frequency, seed), pin_edges=pin_edges)
 
+    def warp_radial_noise(self, amplitude: float = 0.5,
+                          freq_angular: float = 2.0, freq_radial: float = 0.3,
+                          center=None, seed: int = None,
+                          pin_edges: bool = True) -> Mesh:
+        """Displace vertices radially by angle-coherent noise.
+
+        Unlike warp_noise (which pushes x/y independently), this pushes each
+        vertex in/out along the radial direction. The noise is evaluated based
+        on (theta, r) so adjacent rings follow the same angular bumps.
+
+        This is the right warp for concentric ring patterns — rings don't cross,
+        spacing is preserved, and the overall shape stays centered.
+
+        Parameters
+        ----------
+        amplitude : float
+            Max radial displacement in drawing units.
+        freq_angular : float
+            Angular noise frequency — how many bumps per revolution.
+            Higher = more crinkly, lower = broad gentle waves.
+        freq_radial : float
+            Radial noise frequency — how much the pattern changes from
+            ring to ring. Low = all rings have similar shape (coherent).
+            High = rings diverge.
+        center : (cx, cy), optional
+            Center point. Defaults to mesh centroid.
+        seed : int, optional
+            For reproducibility.
+        pin_edges : bool
+            If True (default), inner and outer rings stay fixed.
+        """
+        from opensimplex import OpenSimplex
+
+        rng = np.random.default_rng(seed)
+        noise = OpenSimplex(seed=int(rng.integers(0, 2**31)))
+
+        if center is None:
+            cx, cy = self.x.mean(), self.y.mean()
+        else:
+            cx, cy = center
+
+        dx = self.x - cx
+        dy = self.y - cy
+        r = np.sqrt(dx**2 + dy**2)
+        theta = np.arctan2(dy, dx)
+
+        # Noise based on (theta, r) — angular coherence across rings
+        dr = np.zeros_like(r)
+        for i in range(self.x.shape[0]):
+            for j in range(self.x.shape[1]):
+                dr[i, j] = noise.noise2(
+                    theta[i, j] * freq_angular,
+                    r[i, j] * freq_radial,
+                ) * amplitude
+
+        # Smooth taper near inner/outer edges so rings don't cross boundary
+        if pin_edges:
+            r_min = r.min()
+            r_max = r.max()
+            r_range = r_max - r_min if r_max > r_min else 1.0
+            # Normalized distance from edges: 0 at boundary, 1 in middle
+            t = (r - r_min) / r_range  # 0..1
+            taper = np.clip(t * 5, 0, 1) * np.clip((1 - t) * 5, 0, 1)
+            dr *= taper
+
+        # Apply radial displacement
+        new_r = r + dr
+        # Prevent negative radii
+        new_r = np.maximum(new_r, 0)
+        new_x = cx + new_r * np.cos(theta)
+        new_y = cy + new_r * np.sin(theta)
+        return Mesh(new_x, new_y, self.topology)
+
     def warp_radial(self, center=(0, 0), strength: float = 0.3) -> Mesh:
         """Radial barrel/pincushion distortion.
 
@@ -123,6 +255,58 @@ class Mesh:
         theta += amount * (r / r_max)
         return Mesh(cx + r * np.cos(theta), cy + r * np.sin(theta), self.topology)
 
+    def warp_flow(self, field: Callable, steps: int = 50,
+                  step_size: float = 0.01, momentum: float = 0.0,
+                  pin_edges: bool = False) -> Mesh:
+        """Advect vertices along a flow field.
+
+        Each vertex is pushed through the field for `steps` iterations,
+        producing coherent, flow-aligned distortion.
+
+        Parameters
+        ----------
+        field : callable
+            (x, y) -> angle in radians (same as flow.trace fields).
+        steps : int
+            Number of advection steps per vertex.
+        step_size : float
+            Distance per step.
+        momentum : float (0 to <1)
+            Velocity smoothing (0 = pure Euler, 0.95 = smooth sweeping).
+        pin_edges : bool
+            If True, boundary vertices stay fixed.
+        """
+        nx = self.x.copy()
+        ny = self.y.copy()
+        vx = np.zeros_like(nx)
+        vy = np.zeros_like(ny)
+
+        for step in range(steps):
+            for i in range(nx.shape[0]):
+                for j in range(nx.shape[1]):
+                    angle = field(nx[i, j], ny[i, j])
+                    tvx = np.cos(angle) * step_size
+                    tvy = np.sin(angle) * step_size
+                    if momentum > 0 and step > 0:
+                        vx[i, j] = momentum * vx[i, j] + (1 - momentum) * tvx
+                        vy[i, j] = momentum * vy[i, j] + (1 - momentum) * tvy
+                    else:
+                        vx[i, j], vy[i, j] = tvx, tvy
+                    nx[i, j] += vx[i, j]
+                    ny[i, j] += vy[i, j]
+
+        if pin_edges:
+            if self.topology == "rect":
+                nx[0, :], nx[-1, :] = self.x[0, :], self.x[-1, :]
+                nx[:, 0], nx[:, -1] = self.x[:, 0], self.x[:, -1]
+                ny[0, :], ny[-1, :] = self.y[0, :], self.y[-1, :]
+                ny[:, 0], ny[:, -1] = self.y[:, 0], self.y[:, -1]
+            elif self.topology == "polar":
+                nx[:, 0], nx[:, -1] = self.x[:, 0], self.x[:, -1]
+                ny[:, 0], ny[:, -1] = self.y[:, 0], self.y[:, -1]
+
+        return Mesh(nx, ny, self.topology)
+
     def jitter(self, amount: float = 0.1, seed: int = None,
                pin_edges: bool = True) -> Mesh:
         """Random Gaussian displacement of vertices.
@@ -136,6 +320,87 @@ class Mesh:
             dx[0, :] = dx[-1, :] = dx[:, 0] = dx[:, -1] = 0
             dy[0, :] = dy[-1, :] = dy[:, 0] = dy[:, -1] = 0
         return Mesh(self.x + dx, self.y + dy, self.topology)
+
+    # --- Individual curve extraction ---
+
+    def rings(self, smooth: bool = True, points_per_ring: int = 120) -> list:
+        """Extract individual rings as smooth curves (polar topology).
+
+        Returns a list of np.ndarray, one per ring (column of the mesh).
+        Each is a closed curve. Useful for assigning rings to different layers/colors.
+        """
+        n_spokes, n_rings = self.shape
+        curves = []
+        for j in range(n_rings):
+            ring_x = np.concatenate([self.x[:, j], self.x[:1, j]])
+            ring_y = np.concatenate([self.y[:, j], self.y[:1, j]])
+            if smooth and n_spokes >= 4:
+                t = np.linspace(0, 1, len(ring_x))
+                t_fine = np.linspace(0, 1, points_per_ring + 1)
+                try:
+                    cs_x = CubicSpline(t, ring_x, bc_type='periodic')
+                    cs_y = CubicSpline(t, ring_y, bc_type='periodic')
+                    curves.append(np.column_stack([cs_x(t_fine), cs_y(t_fine)]))
+                    continue
+                except Exception:
+                    pass
+            curves.append(np.column_stack([ring_x, ring_y]))
+        return curves
+
+    def spokes(self, smooth: bool = True, points_per_spoke: int = 100) -> list:
+        """Extract individual spokes as smooth curves (polar topology).
+
+        Returns a list of np.ndarray, one per spoke (row of the mesh).
+        Each is a radial line from inner to outer ring.
+        """
+        n_spokes, n_rings = self.shape
+        curves = []
+        for i in range(n_spokes):
+            if smooth and n_rings >= 4:
+                t = np.linspace(0, 1, n_rings)
+                t_fine = np.linspace(0, 1, points_per_spoke)
+                cs_x = CubicSpline(t, self.x[i, :])
+                cs_y = CubicSpline(t, self.y[i, :])
+                curves.append(np.column_stack([cs_x(t_fine), cs_y(t_fine)]))
+            else:
+                curves.append(np.column_stack([self.x[i, :], self.y[i, :]]))
+        return curves
+
+    def rows(self, smooth: bool = True, points_per_row: int = 100) -> list:
+        """Extract individual rows as smooth curves (rect topology).
+
+        Returns a list of np.ndarray, one per horizontal grid line.
+        """
+        n_rows, n_cols = self.shape
+        curves = []
+        for i in range(n_rows):
+            if smooth and n_cols >= 4:
+                t = np.linspace(0, 1, n_cols)
+                t_fine = np.linspace(0, 1, points_per_row)
+                cs_x = CubicSpline(t, self.x[i, :])
+                cs_y = CubicSpline(t, self.y[i, :])
+                curves.append(np.column_stack([cs_x(t_fine), cs_y(t_fine)]))
+            else:
+                curves.append(np.column_stack([self.x[i, :], self.y[i, :]]))
+        return curves
+
+    def cols(self, smooth: bool = True, points_per_col: int = 100) -> list:
+        """Extract individual columns as smooth curves (rect topology).
+
+        Returns a list of np.ndarray, one per vertical grid line.
+        """
+        n_rows, n_cols = self.shape
+        curves = []
+        for j in range(n_cols):
+            if smooth and n_rows >= 4:
+                t = np.linspace(0, 1, n_rows)
+                t_fine = np.linspace(0, 1, points_per_col)
+                cs_x = CubicSpline(t, self.x[:, j])
+                cs_y = CubicSpline(t, self.y[:, j])
+                curves.append(np.column_stack([cs_x(t_fine), cs_y(t_fine)]))
+            else:
+                curves.append(np.column_stack([self.x[:, j], self.y[:, j]]))
+        return curves
 
     # --- Rendering ---
 
