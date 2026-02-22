@@ -17,5 +17,6 @@ from penpal import gen
 from penpal import sampling
 from penpal import shading
 from penpal import symmetry
+from penpal import render3d
 
 __version__ = "0.1.0"

@@ -54,6 +54,24 @@ def clip(lines: Lines, polygon: np.ndarray) -> Lines:
     return result
 
 
+def clip_away(lines: Lines, polygon: np.ndarray) -> Lines:
+    """Remove parts of lines that fall inside a polygon (opposite of clip).
+
+    Keeps only the portions of lines that are OUTSIDE the polygon.
+    Used for hidden line removal in 3D rendering.
+    """
+    poly = Polygon(polygon[:, :2])
+    if not poly.is_valid:
+        poly = poly.buffer(0)
+    if poly.is_empty:
+        return list(lines)
+    result = []
+    for ls in _lines_to_shapely(lines):
+        clipped = ls.difference(poly)
+        result.extend(_shapely_to_lines(clipped))
+    return result
+
+
 def clip_rect(lines: Lines, xmin: float, ymin: float, xmax: float, ymax: float) -> Lines:
     """Clip lines to an axis-aligned rectangle."""
     rect = box(xmin, ymin, xmax, ymax)
