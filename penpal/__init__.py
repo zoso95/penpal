@@ -18,5 +18,6 @@ from penpal import sampling
 from penpal import shading
 from penpal import symmetry
 from penpal import render3d
+from penpal import cv
 
 __version__ = "0.1.0"
