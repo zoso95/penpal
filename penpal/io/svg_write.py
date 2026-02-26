@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 def to_svg_string(drawing: Drawing, grid: bool = False, precision: int = 4,
-                   include_guides: bool = True) -> str:
+                   include_guides: bool = True, preview: bool = False) -> str:
     """Generate SVG string from a Drawing.
 
     Parameters
@@ -22,10 +22,17 @@ def to_svg_string(drawing: Drawing, grid: bool = False, precision: int = 4,
     include_guides : bool
         If True (default), include guide layers in the SVG output.
         Set to False when saving for plotter output.
+    preview : bool
+        If True, enforce a minimum visible stroke width so lines are visible
+        in notebook/browser display. The true physical widths are preserved
+        in save() output.
     """
     w, h, units = drawing.width, drawing.height, drawing.units
     x0, _ = drawing.x_range
     y0, _ = drawing.y_range
+
+    # For preview, minimum stroke = 0.1% of the larger dimension
+    min_preview_stroke = max(w, h) * 0.001 if preview else 0
 
     parts = [
         '<?xml version="1.0" encoding="UTF-8"?>',
@@ -41,9 +48,10 @@ def to_svg_string(drawing: Drawing, grid: bool = False, precision: int = 4,
     layers = drawing.layers if include_guides else drawing.output_layers
     for layer in layers:
         style = layer.style
+        lw = max(style.linewidth, min_preview_stroke) if preview else style.linewidth
         parts.append(
             f'  <g inkscape:groupmode="layer" inkscape:label="{layer.name}"'
-            f' stroke="{style.color}" stroke-width="{style.linewidth}"'
+            f' stroke="{style.color}" stroke-width="{lw}"'
             f' fill="none" opacity="{style.alpha}">'
         )
         for line in layer.lines:

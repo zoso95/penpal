@@ -170,7 +170,7 @@ class Drawing:
     def _repr_svg_(self) -> str:
         """Jupyter notebook inline SVG display."""
         from penpal.io.svg_write import to_svg_string
-        return to_svg_string(self, grid=self.show_grid)
+        return to_svg_string(self, grid=self.show_grid, preview=True)
 
     def _repr_html_(self) -> str:
         """Fallback HTML display with embedded SVG."""

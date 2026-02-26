@@ -2,13 +2,31 @@
 
 Mapping every technique from the old libraries (gpyplotter, plottermagic, plottersvg, axifun notebooks) to planned penpal modules.
 
-**Old code location:** `/Users/gnb/dev/plotter-backups/drive-download-20260218T174932Z-1-001/`
+## Source Locations
+
+**Old library code:** `/Users/gnb/dev/plotter-backups/drive-download-20260218T174932Z-1-001/`
+See `OLD_CODE_CATALOG.md` for file-by-file index.
+
+**plotter_exps archive:** `/Users/gnb/dev/plotter-backups/plotter_exps/`
+SVG-only output archive (~170+ printed SVGs, project experiments). No source code — visual reference for techniques and production pieces. Key directories:
+- `printed/` — production SVGs covering: cloth simulation, metaballs, lavalamp, glass overlay, moire, oil slick, bubbles, orbits, death series, grass, litho, ghost effects, grid progressions, diamonds, deco patterns, swirls, pencil effects, rainbow paper cutouts, splines, texture experiments
+- `printed/oil_slick_box/` — oil slick moire SVGs (blue + purple layers)
+- `printed/metaballs/` — metaball SVGs (multi-color thick/thin line variants)
+- `printed/texture_lib/` — op-art triangle patterns ("shattered triangle", trippy op-art)
+- `projects/moire/` — moire experiments: texture_lib (op-art triangles), shape_ring (concentric circles), splines, texture, shade_design, hexagon
+- `projects/wallpapers/` — wallpaper group experiments (mono, duo, multicolor, normed)
+- `projects/portraits/` — portrait technique experiments
+- `projects/polygons/` — polygon tessellation experiments
+
+**plotterart GitHub repo:** `https://github.com/zoso95/plotterart`
+(To be cloned to `/Users/gnb/dev/plotterart`.) Contains `pieces/` directory with source notebooks for anaglyph, polygon tessellation, and other art pieces. Not yet indexed — will update catalog separately.
 
 ---
 
 ## Status Legend
 
-- [x] Implemented in penpal
+- [x] Implemented in penpal (code exists and works)
+- [~] Partially implemented (some functions exist, others missing)
 - [ ] Not yet ported
 
 ---
@@ -24,7 +42,7 @@ Mapping every technique from the old libraries (gpyplotter, plottermagic, plotte
 | `core/line_ops.py` | [x] | `gpyplotter/line_processing.py` | optimize (NN), filter_short, collapse, subsample, resample |
 | `core/geo.py` | [x] | — | clip, clip_rect, clip_away, intersect, contains_points (Shapely backend) |
 | `core/layer.py` | [x] | — | Layer = name + style + Paths |
-| `core/drawing.py` | [x] | — | Drawing with layer management, show/save, _repr_svg_ |
+| `core/drawing.py` | [x] | — | Drawing with layer management, show/save, _repr_svg_. **TODO:** `pen_width_mm()` unit-aware helper (currently `pen_width()` only returns inches) |
 | `core/mesh.py` | [x] | — | Mesh class: rect/polar grids, warp, triangulate, to_paths |
 | `core/noise.py` | [x] | — | simplex, fractal, ridged, curl, sine, domain_warp, compose (warp funcs for Mesh) |
 | `backends/matplotlib.py` | [x] | `gpyplotter/plotting.py` | render() with grid lines |
@@ -33,7 +51,7 @@ Mapping every technique from the old libraries (gpyplotter, plottermagic, plotte
 
 ---
 
-## Phase 2: Generators (DONE)
+## Phase 2: Generators
 
 | penpal module | Status | Source | Key functions/techniques |
 |---|---|---|---|
@@ -42,14 +60,16 @@ Mapping every technique from the old libraries (gpyplotter, plottermagic, plotte
 | `gen/fields.py` | [x] | `axifun/perlin noise.ipynb`, `random walk.ipynb` | flow_field, noise_walk |
 | `gen/flow.py` | [x] | `axifun/flow field*.ipynb` | trace, trace_bidirectional, simplex/fractal/curl/radial/spiral/constant/domain_warp fields, seed generators (line/grid/circle/ring/random/poisson), show_field |
 | `gen/attractors.py` | [ ] | `axifun/dynamic system.ipynb` | Random matrix strange attractors: `x += M * sin(F1*x)^P + sin(F2*x)^P` |
-| `gen/moire.py` | [ ] | `axifun/` (6 moire experiments) | Overlapping rotated concentric shapes (circles, polygons, splines) |
-| `gen/contours.py` | [ ] | `axifun/textures.ipynb` | contour_lines, contour_grid — math function → iso-contours |
-| `gen/spline_waves.py` | [ ] | `axifun/spline waves.ipynb` | Animated spline control points with velocity/acceleration |
+| `gen/moire.py` | [ ] | `axifun/` (6 moire experiments), `plotter_exps/projects/moire/` | Overlapping rotated concentric shapes (circles, polygons, splines) |
+| `gen/contours.py` | [ ] | `axifun/textures.ipynb` | contour_lines, contour_grid — math function iso-contours |
+| `gen/spline_waves.py` | [ ] | `axifun/spline waves.ipynb`, `plotter_exps/printed/splines/` | Animated spline control points with velocity/acceleration |
 | `gen/polar.py` | [ ] | `axifun/ribbons.ipynb` | Ribbon curves (offset pairs), polar grids |
+| `gen/ifs.py` | [ ] | `axifun/eric_s thing.ipynb` | Flame fractals / IFS chaos game with 11 variation functions (sinusoidal, spherical, swirl, horseshoe, polar, heart, disc, spiral, hyperbolic, etc.) |
+| `gen/envelopes.py` | [ ] | `axifun/1 over x grids.ipynb`, `axifun/front face logo.ipynb` | Line envelope patterns (1/x hyperbolic curves, diamond/star shapes) |
 
 ---
 
-## Phase 3: Shading + Sampling (DONE)
+## Phase 3: Shading + Sampling
 
 | penpal module | Status | Source | Key functions |
 |---|---|---|---|
@@ -64,7 +84,7 @@ Mapping every technique from the old libraries (gpyplotter, plottermagic, plotte
 
 ---
 
-## Phase 4: Symmetry (DONE)
+## Phase 4: Symmetry
 
 | penpal module | Status | Source | Key functions |
 |---|---|---|---|
@@ -75,52 +95,71 @@ Mapping every technique from the old libraries (gpyplotter, plottermagic, plotte
 
 ---
 
-## Phase 5: CV / Halftone (photo → plotter lines)
+## Phase 5: CV / Halftone (photo -> plotter lines)
 
-**Not yet started.** No `penpal/cv/` directory exists.
+**Partially implemented.** `penpal/cv/` exists with `image.py` and `halftone.py`.
 
-### Line Scan Family
+### Implemented
+
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
-| `cv/halftone.py` — line_scan | [ ] | `axifun/line by line scan*.ipynb` | Threshold → parallel lines → mask → emit visible segments |
-| `cv/halftone.py` — crosshatch | [ ] | `axifun/cross hatching*.ipynb` | Multi-angle hatching per tone band, continuous density variant |
+| `cv/image.py` — load | [x] | `gpyplotter/image_lib.py` | load, gamma_correct, inv_gamma_correct, smooth (gamma-aware blur), resize, map_to_drawing |
+| `cv/halftone.py` — crosshatch | [x] | `axifun/cross hatching*.ipynb` | Multi-angle hatching per tone band, density from brightness |
+| `cv/halftone.py` — line_scan | [x] | `axifun/line by line scan*.ipynb` | Threshold -> parallel horizontal lines -> emit visible segments |
+| `cv/halftone.py` — edges | [x] | `axifun/edge detection.ipynb` | Sobel gradient magnitude -> contour extraction |
+| `cv/halftone.py` — morphological_halftone | [x] | `axifun/dilation*.ipynb` | binary_erosion iterations -> concentric contour rings |
+
+### Not Yet Implemented
+
+#### Line Scan Family
+| penpal module | Status | Source | Technique |
+|---|---|---|---|
 | `cv/halftone.py` — crosshatch_cmyk | [ ] | `axifun/cross hatching cmyk*.ipynb` | CMYK channel separation + per-channel hatching |
+| `cv/halftone.py` — line_scan_wiggle | [ ] | `axifun/line by line scan-wiggle.ipynb`, `suiqggly line by line.ipynb` | Wiggle/squiggly line-by-line scanning |
+| `cv/halftone.py` — line_scan_rotated | [ ] | `axifun/line by line scan-rotated.ipynb` | Line-by-line scanning at arbitrary angles |
+| `cv/halftone.py` — directional_masks | [ ] | `axifun/random directional masks.ipynb` | Rotated hatching per brightness band with different angles per region |
 
-### Morphological / Contour
+#### Morphological / Contour
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
-| `cv/halftone.py` — dilation_contours | [ ] | `axifun/dilation*.ipynb` | binary_erosion iterations → contour extraction |
-| `cv/halftone.py` — contour | [ ] | `axifun/countours.ipynb`, `spline contours.ipynb` | Smooth image → Canny → contour polylines, B-spline smoothing |
+| `cv/halftone.py` — contour | [ ] | `axifun/countours.ipynb`, `spline contours.ipynb` | Smooth image -> contour polylines, B-spline smoothing |
 | `cv/halftone.py` — edge_tone | [ ] | `axifun/edge + tone.ipynb` | Edge detection + tone layers combined |
+| `cv/halftone.py` — dilation_additive | [ ] | `axifun/dilation additive.ipynb` | Multiple brightness thresholds, erodes each separately, sums contour maps |
 
-### Stippling / Dot
+#### Stippling / Dot
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
 | `cv/halftone.py` — mezzotint | [ ] | `axifun/mezzotint*.ipynb` | multinomial dot placement proportional to darkness |
 | `cv/halftone.py` — dot_grid | [ ] | `axifun/dot grid*.ipynb` | Regular grid dots, CMYK variant |
-| `cv/halftone.py` — voronoi_stipple | [ ] | `axifun/vonroni*.ipynb` | Poisson sample → Voronoi → ridge edges, density-weighted |
-| `cv/halftone.py` — delaunay_shade | [ ] | `axifun/triangulation*.ipynb` | Poisson → Delaunay → per-triangle shading by brightness |
+| `cv/halftone.py` — voronoi_stipple | [ ] | `axifun/vonroni*.ipynb` | Poisson sample -> Voronoi -> ridge edges, density-weighted |
+| `cv/halftone.py` — delaunay_shade | [ ] | `axifun/triangulation*.ipynb` | Poisson -> Delaunay -> per-triangle shading by brightness |
+| `cv/halftone.py` — sphere_halftone | [ ] | `axifun/Sphere effect.ipynb` | Concentric circle halftone at grid positions (sphere-like 3D appearance) |
 
-### Dithering
+#### Dithering
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
 | `cv/halftone.py` — floyd_steinberg | [ ] | `axifun/dither demo.ipynb` | Classic Floyd-Steinberg error diffusion |
 | `cv/halftone.py` — stucki | [ ] | `axifun/dither demo.ipynb` | Stucki kernel (wider diffusion) |
-| `cv/halftone.py` — hilbert | [ ] | `axifun/hilbert curves.ipynb` | Brightness → Hilbert curve order per cell |
+| `cv/halftone.py` — hilbert | [ ] | `axifun/hilbert curves.ipynb` | Brightness -> Hilbert curve order per cell |
 
-### Texture / Multi-Scale Decomposition
+#### Spiral Portrait
+| penpal module | Status | Source | Technique |
+|---|---|---|---|
+| `cv/halftone.py` — spiral_portrait | [ ] | `axifun/spirals.ipynb` | Archimedean spiral with sine-wave amplitude modulated by pixel brightness |
+
+#### Texture / Multi-Scale Decomposition
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
 | `cv/texture.py` — laplacian_pyramid | [ ] | `axifun/laplace pyramid.ipynb` | Decompose image into frequency bands via pyrDown/pyrUp. Each band rendered separately with different line techniques. Recombine for multi-scale detail. |
 | `cv/texture.py` — repeat_blurs | [ ] | `axifun/repeat blurs.ipynb` | Progressive maximum_filter at increasing sizes [5,10,15,20,30,50,100]. Difference between scales reveals patterns at each frequency. Creates organic "snake skin" cell patterns. |
-| `cv/texture.py` — voronoi_laplacian | [ ] | `axifun/paul replica - vonroni-less dense laplacian good.ipynb` | Poisson disk → Voronoi regions → flood-fill color assignment → per-region shading density from Laplacian band. The "snake skin painting" technique — organic cell-like fills driven by image frequency content. |
+| `cv/texture.py` — voronoi_laplacian | [ ] | `axifun/paul replica - vonroni-less dense laplacian good.ipynb` | Poisson disk -> Voronoi regions -> flood-fill color assignment -> per-region shading density from Laplacian band. The "snake skin painting" technique — organic cell-like fills driven by image frequency content. |
 
-### Image Utilities
+#### Image Utilities (remaining)
 | penpal module | Status | Source | Key functions |
 |---|---|---|---|
-| `cv/image.py` | [ ] | `gpyplotter/image_lib.py` | load, gamma_correct, blur, sample, resize |
-| `cv/edges.py` | [ ] | `axifun/edge detection.ipynb` | Canny, CLAHE, binary_dilation |
-| `cv/segmentation.py` | [ ] | `axifun/kmean tones.ipynb` | KMeans tone separation for multi-pen |
+| `cv/edges.py` | [ ] | `axifun/edge detection.ipynb`, `skimage.ipynb` | Canny, CLAHE, binary_dilation, Roberts/Sobel/Scharr/Prewitt edge detectors |
+| `cv/segmentation.py` | [ ] | `axifun/kmean tones.ipynb`, `sun.ipynb`, `c-c-c-clustering.ipynb` | KMeans tone separation for multi-pen, cluster-mask spline waves |
+| `cv/duotone.py` | [ ] | `axifun/duotones.ipynb`, `axifun/grid random colors.ipynb` | Two-color line-by-line scanning, multi-color grid assignment |
 
 ---
 
@@ -131,49 +170,54 @@ Mapping every technique from the old libraries (gpyplotter, plottermagic, plotte
 | `cv/warp.py` — force_directed_grid | [ ] | `axifun/grid warp 5 - force directed.ipynb` | networkx graph, spring/repulsion constants from image brightness, iterative relaxation |
 | `cv/warp.py` — grid_shift | [ ] | `axifun/grid shifting*.ipynb`, `radial grid shifting*.ipynb` | Row/column offsets from noise or radial functions |
 | `cv/warp.py` — fluid_warp | [ ] | `axifun/fluid warping.ipynb` | Iterated domain warping: `g(x + g(x + g(x)))` |
+| `cv/warp.py` — schism_grid | [ ] | `axifun/schism grid shift.ipynb` | Grid shifting with intentional discontinuities/schisms creating split patterns |
+| `cv/warp.py` — refraction | [ ] | `axifun/refraction.ipynb`, `refraction continious.ipynb`, `plotter_exps/printed/glass_overlay.svg` | Parallel lines change angle at brightness boundaries, simulating light refraction |
 
 ---
 
-## Phase 7: 3D Engine (DONE — basic pipeline)
+## Phase 7: 3D Engine
+
+### Phase 7a: Core Pipeline (DONE)
 
 | penpal module | Status | Source | Key classes/functions |
 |---|---|---|---|
 | `render3d/project.py` | [x] | `plottermagic/line_render/camera.py` | look_at, perspective, project_points, project_lines, viewport_map |
 | `render3d/camera.py` | [x] | `plottermagic/line_render/camera.py` | Camera class with orbit() classmethod |
 | `render3d/shapes.py` | [x] | `plottermagic/line_render/polygon.py`, `polyhedron.py` | Face3D (with texture hatching), Mesh3D (box, plane factories), Wireframe, TextureSpec |
-| `render3d/scene.py` | [x] | `plottermagic/line_render/render.py` | Scene class: backface cull → project → sort → hidden line removal via Shapely difference → Drawing |
-| `render3d/shading3d.py` | [x] | `plottermagic/shading/simple_shapes.py` | Integrated into Face3D.generate_texture_lines() — hatch in face-local 2D, map back to 3D |
-| `render3d/sphere.py` | [ ] | `axifun/spheres*.ipynb` | Analytical sphere: lat/lon grid, hidden-line by normal dot product |
-| `render3d/anaglyph.py` | [ ] | `plotterart/pieces/anaglyph/` | Stereo pair rendering (red/cyan offset cameras) |
+| `render3d/scene.py` | [x] | `plottermagic/line_render/render.py` | Scene class: backface cull -> project -> sort -> hidden line removal via Shapely difference -> Drawing |
 
-**Done:** Camera, projection, shapes (Face3D/Mesh3D/Wireframe with textures), scene render pipeline with proper hidden line removal (front-to-back occlusion clipping via Shapely). Frustum clipping not needed — viewport_map handles the mapping.
+### Phase 7b: NPR Sketch Rendering (DONE)
 
-**Not done:** Sphere primitive, anaglyph stereo rendering, NPR sketch rendering, moire surfaces.
+| penpal module | Status | Source | Key classes/functions |
+|---|---|---|---|
+| `render3d/lighting.py` | [x] | — | DirectionalLight, PointLight, compute_face_intensities (Lambert diffuse model) |
+| `render3d/loader.py` | [x] | — | load_stl: binary + ASCII STL parser -> Mesh3D, with decimation support |
+| `render3d/mesh_ops.py` | [x] | — | triangulate_mesh, weld_vertices, compute_face_normals, compute_vertex_normals, compute_curvature_directions (dihedral angle estimation), extract_silhouette_edges |
+| `render3d/sketch.py` | [x] | Hertzmann & Zorin, Winkenbach & Salesin | sketch_render: curvature-driven hatching, lighting-based density, silhouette edges, auto-scaled spacing |
 
-### Phase 7b: Moire / 3D Surface Projection
+**Done:** Full NPR sketch pipeline — load STL -> triangulate -> weld vertices -> compute curvature -> lighting -> curvature-following hatching (dense in shadow, sparse in highlights) -> silhouette extraction -> hidden line removal -> Drawing.
 
-The "oil slick" effect: project regular patterns (grids, concentric circles) onto bumpy 3D surfaces. The moire interference emerges naturally from perspective compression of the pattern over the surface deformation.
+### Phase 7c: Remaining 3D Features
 
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
-| `gen/moire.py` — overlapping_patterns | [ ] | `axifun/` (6 moire experiments) | Overlapping rotated concentric circles, grids, line sets with slight angle/offset differences |
-| `gen/moire.py` — surface_project | [ ] | `axifun/distortion grids*.ipynb` | Project regular pattern onto noise-deformed 3D mesh surface via camera → interference patterns |
-| `render3d/surface.py` | [ ] | `axifun/distortion grids*.ipynb`, `radial grid shifting*.ipynb` | Deformable mesh surface: take core/Mesh, displace Z by noise/function, render as Face3D grid with pattern |
+| `render3d/sphere.py` | [ ] | `axifun/spheres*.ipynb` | Analytical sphere: lat/lon grid, hidden-line by normal dot product |
+| `render3d/anaglyph.py` | [ ] | `plotterart/pieces/anaglyph/` (9 stereoscopic notebooks) | Stereo pair rendering (red/cyan offset cameras). Left/right eye images with horizontal parallax displacement. |
+| `render3d/contours.py` | [ ] | — | Suggestive contours (curvature zero-crossings) — silhouette extraction is done in mesh_ops.py, but suggestive contours remain |
+| `render3d/surface.py` | [ ] | `axifun/distortion grids*.ipynb`, `radial grid shifting*.ipynb` | Deformable mesh surface for moire: Mesh + Z displacement by noise + camera projection -> interference patterns |
+
+### Phase 7d: Moire / 3D Surface Projection
+
+The "oil slick" effect: project regular patterns (grids, concentric circles) onto bumpy 3D surfaces. The moire interference emerges naturally from perspective compression of the pattern over the surface deformation. See `plotter_exps/printed/oil_slick_box/` (blue + purple layers) and `plotter_exps/printed/comissioned_moire.svg`.
+
+| penpal module | Status | Source | Technique |
+|---|---|---|---|
+| `gen/moire.py` — overlapping_patterns | [ ] | `axifun/` (6 moire experiments), `plotter_exps/projects/moire/` | Overlapping rotated concentric circles, grids, line sets with slight angle/offset differences. Reference: `projects/moire/shape_ring/` (concentric circles), `projects/moire/splines/`, `projects/moire/hexagon/` |
+| `gen/moire.py` — surface_project | [ ] | `axifun/distortion grids*.ipynb` | Project regular pattern onto noise-deformed 3D mesh surface via camera -> interference patterns |
+| `gen/moire.py` — oil_slick | [ ] | `plotter_exps/printed/oil_slick_box/`, `plotter_exps/printed/perlin_metalic.svg` | Perlin noise moire: multi-layer patterns on noise-displaced surfaces, producing oil-slick iridescence effect |
+| `render3d/surface.py` | [ ] | `axifun/distortion grids*.ipynb` | Deformable mesh surface: take core/Mesh, displace Z by noise/function, render as Face3D grid with pattern |
 
 **Algorithm:** Define a regular grid in 3D. Displace Z-coordinates with noise (simplex, radial distortion, etc). The grid lines on the bumpy surface project to 2D through the camera, and the uneven compression creates moire interference. Can use existing `core/mesh.py` warping + `render3d/scene.py` projection.
-
-### Phase 7c: NPR Sketch Rendering (3D model → realistic sketch)
-
-Use 3D model geometry (normals, curvature) + lighting to generate hatching that looks like a hand-drawn sketch. Hatching follows principal curvature directions, density driven by lighting.
-
-| penpal module | Status | Source | Technique |
-|---|---|---|---|
-| `render3d/lighting.py` | [ ] | — | Light class (point/directional), per-face diffuse+specular shading → intensity value |
-| `render3d/npr.py` | [ ] | Hertzmann & Zorin, Winkenbach & Salesin | Curvature-driven hatching: estimate principal curvature directions, hatch along them, density from lighting |
-| `render3d/contours.py` | [ ] | — | Silhouette extraction (normal ⊥ view), suggestive contours (curvature zero-crossings) |
-| `render3d/loader.py` | [ ] | — | OBJ/STL mesh loader → Face3D/Mesh3D |
-
-**Vision:** Load a 3D model → compute lighting → extract silhouettes + suggestive contours → fill lit surfaces with curvature-following hatching (sparse in highlights, dense in shadow) → plotter-ready sketch that looks hand-drawn.
 
 ---
 
@@ -205,7 +249,7 @@ Use 3D model geometry (normals, curvature) + lighting to generate hatching that 
 
 | penpal module | Status | Source | Description |
 |---|---|---|---|
-| `rl/env.py` | [ ] | — | Gymnasium env: target image → stroke actions |
+| `rl/env.py` | [ ] | — | Gymnasium env: target image -> stroke actions |
 | `rl/rasterizer.py` | [ ] | — | Cairo-based fast line rasterizer |
 | `rl/reward.py` | [ ] | — | L2 pixel, SSIM, VGG perceptual loss |
 | `rl/stroke.py` | [ ] | — | Action space: line, bezier, arc strokes |
@@ -215,13 +259,98 @@ Use 3D model geometry (normals, curvature) + lighting to generate hatching that 
 
 ## Phase 11: Effects & Simulation
 
-New modules — not ported from old code, built fresh.
+New modules — not ported from old code, built fresh. Some have output references in `plotter_exps/printed/`.
 
-| penpal module | Status | Technique |
-|---|---|---|
-| `effects/cloth.py` | [ ] | Cloth simulation — spring/mass mesh that drapes, wrinkles, folds. Output as displaced line grids or draped patterns. |
-| `effects/glass.py` | [ ] | Glass distortion — refracts/displaces lines behind a glass region (lens, pane, sphere). Snell's law or simplified radial distortion of line segments passing through the glass shape. |
-| `effects/easing.py` | [ ] | Interpolation / easing library — envelope functions (ease-in, ease-out, bounce, elastic, overshoot, step, cubic, etc.) for animating parameters, modulating density, or shaping warp fields. |
+| penpal module | Status | Source / Reference | Technique |
+|---|---|---|---|
+| `effects/cloth.py` | [ ] | `plotter_exps/printed/cloth_*.svg`, `metalic_cloth.svg`, `scratch_cloth.svg`, `glitch_cloth.svg`, `smooth_cloth.svg` | Cloth simulation — spring/mass mesh that drapes, wrinkles, folds. Output as displaced line grids or draped patterns. Multiple production pieces exist in archive (chunked, layered, metallic, Emily). |
+| `effects/metaballs.py` | [ ] | `plotter_exps/printed/metaballs/` | Metaball / implicit surface rendering — sum of 1/r^2 fields from point sources, extract iso-contour as polylines. Multi-color variants (thick/thin lines per color). |
+| `effects/lavalamp.py` | [ ] | `plotter_exps/printed/lavalamp.svg` | Lava lamp effect — animated metaballs with gravity and buoyancy, possibly frame-captured as static composition. |
+| `effects/glass.py` | [ ] | `plotter_exps/printed/glass_overlay.svg`, `axifun/refraction*.ipynb` | Glass distortion — refracts/displaces lines behind a glass region (lens, pane, sphere). Snell's law or simplified radial distortion of line segments passing through the glass shape. |
+| `effects/bubbles.py` | [ ] | `plotter_exps/printed/bubbles_etch.svg`, `bubbles_grid_etch.svg` | Bubble patterns — circular distortion fields with refraction-like displacement and highlight arcs. |
+| `effects/easing.py` | [ ] | — | Interpolation / easing library — envelope functions (ease-in, ease-out, bounce, elastic, overshoot, step, cubic, etc.) for animating parameters, modulating density, or shaping warp fields. |
+| `effects/ghost.py` | [ ] | `plotter_exps/printed/ghosts.svg` | Ghost/echo effects — offset/faded duplicates of geometry with progressive distortion or transparency simulation via line density. |
+| `effects/smoke.py` | [ ] | `plotter_exps/printed/smoke_strands.svg` | Smoke/strand simulation — turbulent noise-driven strand paths, possibly particle-based. |
+| `effects/orbits.py` | [ ] | `plotter_exps/printed/orbits.svg` | Orbital mechanics — elliptical paths with gravitational interaction, possibly n-body or simple Kepler orbits. |
+
+---
+
+## Phase 12: Neural Network / Optimization Approaches
+
+Experimental techniques using ML for line placement.
+
+| penpal module | Status | Source | Technique |
+|---|---|---|---|
+| `nn/perceptual_lines.py` | [ ] | `axifun/photo realism nn.ipynb`, `axifun/vgg/` | VGG19 perceptual loss — iteratively place random lines that minimize perceptual distance to target image. TensorFlow VGG16/19 implementations in `axifun/vgg/`. |
+| `nn/quadtree_graph.py` | [ ] | `axifun/photo realism qt graph.ipynb`, `qt graph stuff.ipynb` | Quadtree graph-based image partitioning for adaptive line placement. |
+| `nn/photo_realism.py` | [ ] | `axifun/photo realism no NN.ipynb`, `photo realism (fast I think).ipynb` | Non-neural photo realism approaches (fast variants). |
+
+---
+
+## Phase 13: External Tool Integration
+
+| penpal module | Status | Source | Technique |
+|---|---|---|---|
+| `integrations/blender.py` | [ ] | `axifun/blender/`, `axifun/blender/keepers/` | Blender 3D model -> SVG wireframe export pipeline. ~20 Blender wireframe SVGs in archive. |
+
+---
+
+## Production Technique Reference (plotter_exps archive)
+
+Techniques observed in `plotter_exps/printed/` that have production-quality outputs. These serve as visual targets for implementation. Grouped by category:
+
+### Grid / Geometric Patterns
+- `grid_progression.svg`, `grid_trippy*.svg`, `subtle_grid.svg` — grid-based pattern progressions
+- `block_grad_grid/`, `blue_block_grid.svg` — block gradient grids
+- `box_shading.svg`, `boxes_etch.svg`, `litho_boxes.svg` — box-based shading
+- `deco_diamonds.svg`, `diamonds.svg` — art deco diamond patterns
+- `circle_connected*.svg`, `circle_cutout.svg`, `circle_strip.svg` — circle compositions
+- `illuminati.svg` — geometric eye/pyramid design
+- `web.svg` — web-like radial pattern
+- `cos_hourglass.svg` — cosine-based hourglass shape
+- `curvilinear.svg` — curvilinear grid patterns
+
+### Swirl / Spiral / Flow
+- `swirl.svg`, `bw_swirl*.svg`, `trippy_swirl.svg` — swirl patterns
+- `rainbow_spiral_trippy*.svg` — rainbow spiral with psychedelic effect
+- `storm.svg`, `storm2.svg` — storm/vortex patterns
+- `riptide_811.svg` — riptide flow pattern
+
+### Color / Rainbow / Multi-Layer
+- `rainbow_flower*.svg`, `rainbow_paper_cutout*.svg`, `rainbow_rect*.svg` — rainbow multi-pen layered pieces
+- `rainbow_road/`, `rainbow_road_2/` — rainbow gradient road patterns
+- `rainbow_stainglass/`, `rainbow_voroni/` — rainbow stained glass / Voronoi
+- `perlin_rainbow*.svg` — Perlin noise with rainbow color mapping
+
+### Pencil / Mixed Media
+- `pencil_gradient.svg`, `pencil_circle_shaded.svg`, `pencil_square_shaded.svg` — pencil-drawn shading effects
+- `pencil_lewitt.svg` — Sol LeWitt-inspired pencil patterns
+- `pencil_stripes.svg`, `pencil_vertical.svg` — pencil stripe patterns
+- `pencil_watercolor_test*.svg` (5 variants) — pencil + watercolor mixed media experiments
+
+### Portrait / Figurative
+- `agnes_litho.svg`, `agnes_strips_c*.svg`, `agnes_tones_c*.svg` — Agnes portrait variants
+- `the_eyes.svg` — eye-focused portrait
+- `projects/portraits/` — portrait experiment directory
+
+### Lithography / Stained Glass / Decorative
+- `litho_stainglass_1.svg`, `sainglass_4.svg`, `stainglass_8_10.svg` — stained glass patterns
+- `stainglass_laser_print/` — laser-printed stained glass
+- `las_meninans_geo_abstract.svg`, `nighthawks_geo_abstract.svg`, `school_athens_geo_abstract.svg` — geometric abstractions of famous paintings
+
+### Death Series
+- `death_bumps.svg`, `death_fuzzy.svg`, `death_guts*.svg` — "death" themed series with organic distortion
+
+### Misc Production
+- `dot_square.svg`, `dots_the_style.svg` — dot-based patterns
+- `grass/` (3 SVGs) — grass/nature patterns
+- `sunset/` — sunset gradient patterns
+- `patchwork/` — patchwork quilt patterns
+- `lewitt_challenge_pieces/` — Sol LeWitt wall drawing challenge
+- `sky_grid.svg`, `sky_try/` — sky-themed grids
+- `ocean_grid.svg` — ocean-themed grid
+- `collectors_november.svg`, `welcome_november.svg` — seasonal collector pieces
+- `exp_strip.svg`, `sun_strip.svg`, `circle_strip.svg` — strip-based compositions
 
 ---
 
@@ -256,19 +385,23 @@ These exist in multiple places in the old code. Consolidate to one canonical loc
 - **Shading** — polygon hatching (hatch, crosshatch, shade_triangle/quad)
 - **Sampling** — Poisson disk, Voronoi/Delaunay tessellation
 - **Symmetry** — wallpaper groups, mandala (cyclic/dihedral), Droste/mirror_slice
-- **3D** — full render pipeline: camera, projection, shapes with textures, hidden line removal
+- **3D** — full render pipeline: camera, projection, shapes with textures, hidden line removal, NPR sketch rendering (lighting, curvature-driven hatching, silhouette extraction, STL loader)
+- **CV/Halftone** — crosshatch, line scan, edge detection, morphological halftone, image loading/preprocessing
 - **I/O** — SVG write (Inkscape layers), provenance tracking
 
 ### Missing (by priority)
-1. **CV/Halftone** — the entire photo-to-plotter pipeline (crosshatch, line scan, dithering, stippling) — this is the biggest gap
+1. **CV/Halftone (remaining)** — CMYK variants, wiggle/rotated line scan, mezzotint, dot grid, voronoi stipple, delaunay shade, dithering (Floyd-Steinberg, Stucki), Hilbert, spiral portrait, directional masks
 2. **CV/Texture** — Laplacian pyramid decomposition, repeat-blur frequency bands, Voronoi-Laplacian "snake skin" rendering
-3. **Moire / 3D surface projection** — project patterns onto bumpy surfaces for interference effects ("oil slick")
-4. **NPR sketch rendering** — lighting, curvature-driven hatching, silhouette/contour extraction from 3D models
-5. **SVG reader** — can write SVGs but can't read them back
-6. **Generators** — attractors, moire overlaps, contours, spline waves, polar/ribbons
-7. **Warp** — force-directed grid, fluid warping, grid shifting
-8. **Shading** — PolygonShader, arc shading, stipple, dilation fills
-9. **3D extras** — sphere primitive, anaglyph stereo
-10. **I/O** — GCode export, SVG path parser, SVG stitching, AxiDraw driver
-11. **RL environment** — gymnasium env, cairo rasterizer, reward functions
-12. **Effects** — cloth simulation, glass distortion, easing/interpolation envelopes
+3. **Moire / 3D surface projection** — project patterns onto bumpy surfaces for interference effects ("oil slick"), overlapping rotated patterns
+4. **Warp** — force-directed grid, fluid warping, grid shifting, schism grid, refraction
+5. **Effects / Simulation** — cloth, metaballs, lavalamp, glass distortion, bubbles, ghost, smoke, orbits, easing
+6. **Generators** — attractors, moire overlaps, contours, spline waves, polar/ribbons, IFS/flame fractals, line envelopes
+7. **3D extras** — sphere primitive, anaglyph stereo, suggestive contours, deformable surface
+8. **SVG reader** — can write SVGs but can't read them back
+9. **CV utilities** — edges (Canny/CLAHE), segmentation (KMeans), duotone
+10. **Shading** — PolygonShader, arc shading, stipple, dilation fills
+11. **I/O** — GCode export, SVG path parser, SVG stitching, AxiDraw driver
+12. **Neural/optimization** — VGG perceptual line placement, quadtree graph, photo realism
+13. **External integration** — Blender SVG export pipeline
+14. **RL environment** — gymnasium env, cairo rasterizer, reward functions
+
