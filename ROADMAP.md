@@ -287,7 +287,17 @@ Experimental techniques using ML for line placement.
 
 ---
 
-## Phase 13: External Tool Integration
+## Phase 13: Evolutionary / Genetic Tuning
+
+| penpal module | Status | Source | Technique |
+|---|---|---|---|
+| `evolve/genetic.py` | [ ] | — | Genetic algorithm for parameter tuning. Define a param search space, render a population grid, select favorites (human-in-the-loop) or use fitness metrics, breed + mutate → next generation. |
+| `evolve/grid_search.py` | [ ] | — | Exhaustive / random grid search over param spaces with thumbnail rendering. |
+| `evolve/fitness.py` | [ ] | — | Automated fitness functions: line density, coverage uniformity, complexity metrics, symmetry score, etc. For fully automated exploration or pre-filtering before human selection. |
+
+---
+
+## Phase 14: External Tool Integration
 
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
