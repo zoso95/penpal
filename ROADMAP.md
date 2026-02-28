@@ -59,13 +59,13 @@ SVG-only output archive (~170+ printed SVGs, project experiments). No source cod
 | `gen/grids.py` | [x] | `axifun/distortion grids.ipynb` | grid, distorted_grid, barrel_distortion, noise_grid, polar_noise_grid |
 | `gen/fields.py` | [x] | `axifun/perlin noise.ipynb`, `random walk.ipynb` | flow_field, noise_walk |
 | `gen/flow.py` | [x] | `axifun/flow field*.ipynb` | trace, trace_bidirectional, simplex/fractal/curl/radial/spiral/constant/domain_warp fields, seed generators (line/grid/circle/ring/random/poisson), show_field |
-| `gen/attractors.py` | [ ] | `axifun/dynamic system.ipynb` | Random matrix strange attractors: `x += M * sin(F1*x)^P + sin(F2*x)^P` |
-| `gen/moire.py` | [ ] | `axifun/` (6 moire experiments), `plotter_exps/projects/moire/` | Overlapping rotated concentric shapes (circles, polygons, splines) |
-| `gen/contours.py` | [ ] | `axifun/textures.ipynb` | contour_lines, contour_grid — math function iso-contours |
-| `gen/spline_waves.py` | [ ] | `axifun/spline waves.ipynb`, `plotter_exps/printed/splines/` | Animated spline control points with velocity/acceleration |
-| `gen/polar.py` | [ ] | `axifun/ribbons.ipynb` | Ribbon curves (offset pairs), polar grids |
-| `gen/ifs.py` | [ ] | `axifun/eric_s thing.ipynb` | Flame fractals / IFS chaos game with 11 variation functions (sinusoidal, spherical, swirl, horseshoe, polar, heart, disc, spiral, hyperbolic, etc.) |
-| `gen/envelopes.py` | [ ] | `axifun/1 over x grids.ipynb`, `axifun/front face logo.ipynb` | Line envelope patterns (1/x hyperbolic curves, diamond/star shapes) |
+| `gen/attractors.py` | [x] | `axifun/dynamic system.ipynb` | random_attractor, lorenz, rossler, clifford, de_jong, bedhead |
+| `gen/moire.py` | [x] | `axifun/` (6 moire experiments), `plotter_exps/projects/moire/` | oil_slick, metallic_grid, rotated_grids, concentric_circles, concentric_shapes, surface_contour_moire |
+| `gen/contours.py` | [x] | `axifun/textures.ipynb` | contour_lines, contour_filled, gaussian_bumps, math_contours |
+| `gen/spline_waves.py` | [x] | `axifun/spline waves.ipynb`, `plotter_exps/printed/splines/` | spline_waves, random_walk_waves, evolving_waves |
+| `gen/polar.py` | [x] | `axifun/ribbons.ipynb` | ribbon, ribbon_pair, concentric_ribbons, polar_function, polar_grid |
+| `gen/ifs.py` | [x] | `axifun/eric_s thing.ipynb` | flame (11 variation functions), barnsley_fern, sierpinski, dragon_curve |
+| `gen/envelopes.py` | [x] | `axifun/1 over x grids.ipynb`, `axifun/front face logo.ipynb` | hyperbolic, diamond, string_art, parabolic_envelope, cardioid_envelope |
 
 ---
 
@@ -76,8 +76,8 @@ SVG-only output archive (~170+ printed SVGs, project experiments). No source cod
 | `shading/hatch.py` | [x] | `gpyplotter/shading.py`, `plottermagic/shading/simple_shapes.py` | hatch_polygon, shade_polygon, shade_triangle, shade_quadrilateral, parallel_lines |
 | `shading/polygon.py` | [ ] | `gpyplotter/polyshader.py` | PolygonShader base class, step_through_poly, step_and_shade_poly |
 | `shading/arc.py` | [ ] | `plottermagic/shading/simple_shapes.py` | grid_arc_shading — diagonal strut fills |
-| `shading/stipple.py` | [ ] | — | Dot/point-based fills |
-| `shading/dilation.py` | [ ] | `axifun/dilated polygons` notebooks | Concentric inset polygons via Shapely buffer |
+| `shading/stipple.py` | [x] | — | stipple_polygon, stipple_rect, dots_at (poisson/grid/jittered/random) |
+| `shading/dilation.py` | [x] | `axifun/dilated polygons` notebooks | dilate_polygon, dilate_rect, dilate_circle, multi_dilate |
 | `sampling/poisson.py` | [x] | `gpyplotter/sampling.py` (consolidated from 3 sources) | poisson_disk, poisson_disk_n |
 | `sampling/tessellation.py` | [x] | `gpyplotter/tiling.py` | voronoi, delaunay, voronoi_edges |
 | `sampling/noise.py` | [x] | — | (see core/noise.py — OpenSimplex warp funcs) |
@@ -129,23 +129,26 @@ SVG-only output archive (~170+ printed SVGs, project experiments). No source cod
 #### Stippling / Dot
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
-| `cv/halftone.py` — mezzotint | [ ] | `axifun/mezzotint*.ipynb` | multinomial dot placement proportional to darkness |
-| `cv/halftone.py` — dot_grid | [ ] | `axifun/dot grid*.ipynb` | Regular grid dots, CMYK variant |
-| `cv/halftone.py` — voronoi_stipple | [ ] | `axifun/vonroni*.ipynb` | Poisson sample -> Voronoi -> ridge edges, density-weighted |
+| `cv/halftone.py` — mezzotint | [x] | `axifun/mezzotint*.ipynb` | multinomial dot placement proportional to darkness |
+| `cv/halftone.py` — dot_grid | [x] | `axifun/dot grid*.ipynb` | Regular grid dots + dot_grid_cmyk for CMYK variant |
+| `cv/halftone.py` — voronoi_stipple | [x] | `axifun/vonroni*.ipynb` | Rejection sampling -> Voronoi -> ridge edges, density-weighted |
 | `cv/halftone.py` — delaunay_shade | [ ] | `axifun/triangulation*.ipynb` | Poisson -> Delaunay -> per-triangle shading by brightness |
 | `cv/halftone.py` — sphere_halftone | [ ] | `axifun/Sphere effect.ipynb` | Concentric circle halftone at grid positions (sphere-like 3D appearance) |
 
 #### Dithering
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
-| `cv/halftone.py` — floyd_steinberg | [ ] | `axifun/dither demo.ipynb` | Classic Floyd-Steinberg error diffusion |
-| `cv/halftone.py` — stucki | [ ] | `axifun/dither demo.ipynb` | Stucki kernel (wider diffusion) |
+| `cv/dither.py` — floyd_steinberg | [x] | `axifun/dither demo.ipynb` | Classic Floyd-Steinberg error diffusion |
+| `cv/dither.py` — stucki | [x] | `axifun/dither demo.ipynb` | Stucki kernel (wider diffusion) |
+| `cv/dither.py` — jarvis_judice_ninke | [x] | — | JJN 12-neighbor kernel |
+| `cv/dither.py` — atkinson | [x] | — | Atkinson dithering (classic Mac, 3/4 error diffusion) |
+| `cv/dither.py` — dither_to_lines | [x] | — | Dither + render as horizontal line segments |
 | `cv/halftone.py` — hilbert | [ ] | `axifun/hilbert curves.ipynb` | Brightness -> Hilbert curve order per cell |
 
 #### Spiral Portrait
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
-| `cv/halftone.py` — spiral_portrait | [ ] | `axifun/spirals.ipynb` | Archimedean spiral with sine-wave amplitude modulated by pixel brightness |
+| `cv/halftone.py` — spiral_portrait | [x] | `axifun/spirals.ipynb` | Archimedean spiral with sine-wave amplitude modulated by pixel brightness |
 
 #### Texture / Multi-Scale Decomposition
 | penpal module | Status | Source | Technique |
@@ -264,11 +267,11 @@ New modules — not ported from old code, built fresh. Some have output referenc
 | penpal module | Status | Source / Reference | Technique |
 |---|---|---|---|
 | `effects/cloth.py` | [ ] | `plotter_exps/printed/cloth_*.svg`, `metalic_cloth.svg`, `scratch_cloth.svg`, `glitch_cloth.svg`, `smooth_cloth.svg` | Cloth simulation — spring/mass mesh that drapes, wrinkles, folds. Output as displaced line grids or draped patterns. Multiple production pieces exist in archive (chunked, layered, metallic, Emily). |
-| `effects/metaballs.py` | [ ] | `plotter_exps/printed/metaballs/` | Metaball / implicit surface rendering — sum of 1/r^2 fields from point sources, extract iso-contour as polylines. Multi-color variants (thick/thin lines per color). |
+| `effects/metaballs.py` | [x] | `plotter_exps/printed/metaballs/` | metaballs, metaball_field, animated_metaballs — sum of 1/r^2 fields, iso-contour extraction |
 | `effects/lavalamp.py` | [ ] | `plotter_exps/printed/lavalamp.svg` | Lava lamp effect — animated metaballs with gravity and buoyancy, possibly frame-captured as static composition. |
 | `effects/glass.py` | [ ] | `plotter_exps/printed/glass_overlay.svg`, `axifun/refraction*.ipynb` | Glass distortion — refracts/displaces lines behind a glass region (lens, pane, sphere). Snell's law or simplified radial distortion of line segments passing through the glass shape. |
 | `effects/bubbles.py` | [ ] | `plotter_exps/printed/bubbles_etch.svg`, `bubbles_grid_etch.svg` | Bubble patterns — circular distortion fields with refraction-like displacement and highlight arcs. |
-| `effects/easing.py` | [ ] | — | Interpolation / easing library — envelope functions (ease-in, ease-out, bounce, elastic, overshoot, step, cubic, etc.) for animating parameters, modulating density, or shaping warp fields. |
+| `effects/easing.py` | [x] | — | 20+ easing functions: linear, ease_in/out (quad/cubic/quart/expo/circ), elastic, bounce, smoothstep, smootherstep, pulse, sawtooth, triangle_wave, remap |
 | `effects/ghost.py` | [ ] | `plotter_exps/printed/ghosts.svg` | Ghost/echo effects — offset/faded duplicates of geometry with progressive distortion or transparency simulation via line density. |
 | `effects/smoke.py` | [ ] | `plotter_exps/printed/smoke_strands.svg` | Smoke/strand simulation — turbulent noise-driven strand paths, possibly particle-based. |
 | `effects/orbits.py` | [ ] | `plotter_exps/printed/orbits.svg` | Orbital mechanics — elliptical paths with gravitational interaction, possibly n-body or simple Kepler orbits. |
@@ -391,27 +394,28 @@ These exist in multiple places in the old code. Consolidate to one canonical loc
 
 ### Done (usable today)
 - **Core** — Drawing, Paths, Layers, transforms, line ops, geo clipping, mesh, noise
-- **Generators** — curves, grids, fields, flow tracing (comprehensive)
-- **Shading** — polygon hatching (hatch, crosshatch, shade_triangle/quad)
+- **Generators** — curves, grids, fields, flow tracing, attractors (Lorenz/Rossler/Clifford/de Jong/Bedhead/random), IFS/flame fractals (11 variations + Barnsley/Sierpinski/dragon), contour extraction (math/gaussian/scalar fields), line envelopes (hyperbolic/diamond/string art/parabolic/cardioid), spline waves (physics/random walk/evolving), polar/ribbons (ribbon fills, concentric ribbons, polar grid), moire (oil slick/metallic/rotated/concentric/surface contour)
+- **Shading** — polygon hatching (hatch, crosshatch, shade_triangle/quad), stipple fills (poisson/grid/jittered/random), dilation fills (concentric inset polygons via Shapely buffer)
 - **Sampling** — Poisson disk, Voronoi/Delaunay tessellation
 - **Symmetry** — wallpaper groups, mandala (cyclic/dihedral), Droste/mirror_slice
 - **3D** — full render pipeline: camera, projection, shapes with textures, hidden line removal, NPR sketch rendering (lighting, curvature-driven hatching, silhouette extraction, STL loader)
-- **CV/Halftone** — crosshatch, line scan, edge detection, morphological halftone, image loading/preprocessing
+- **CV/Halftone** — crosshatch, line scan, edge detection, morphological halftone, dot grid (BW + CMYK), mezzotint (importance-sampled stippling), voronoi stipple, spiral portrait, image loading/preprocessing
+- **CV/Dithering** — Floyd-Steinberg, Stucki, Jarvis-Judice-Ninke, Atkinson, dither-to-lines
+- **Effects** — easing library (20+ functions), metaballs (single/field/animated)
 - **I/O** — SVG write (Inkscape layers), provenance tracking
 
 ### Missing (by priority)
-1. **CV/Halftone (remaining)** — CMYK variants, wiggle/rotated line scan, mezzotint, dot grid, voronoi stipple, delaunay shade, dithering (Floyd-Steinberg, Stucki), Hilbert, spiral portrait, directional masks
+1. **CV/Halftone (remaining)** — CMYK crosshatch, wiggle/rotated line scan, delaunay shade, sphere halftone, Hilbert curve halftone, directional masks
 2. **CV/Texture** — Laplacian pyramid decomposition, repeat-blur frequency bands, Voronoi-Laplacian "snake skin" rendering
-3. **Moire / 3D surface projection** — project patterns onto bumpy surfaces for interference effects ("oil slick"), overlapping rotated patterns
+3. **Moire / 3D surface projection** — project patterns onto bumpy surfaces for interference effects
 4. **Warp** — force-directed grid, fluid warping, grid shifting, schism grid, refraction
-5. **Effects / Simulation** — cloth, metaballs, lavalamp, glass distortion, bubbles, ghost, smoke, orbits, easing
-6. **Generators** — attractors, moire overlaps, contours, spline waves, polar/ribbons, IFS/flame fractals, line envelopes
-7. **3D extras** — sphere primitive, anaglyph stereo, suggestive contours, deformable surface
-8. **SVG reader** — can write SVGs but can't read them back
-9. **CV utilities** — edges (Canny/CLAHE), segmentation (KMeans), duotone
-10. **Shading** — PolygonShader, arc shading, stipple, dilation fills
-11. **I/O** — GCode export, SVG path parser, SVG stitching, AxiDraw driver
-12. **Neural/optimization** — VGG perceptual line placement, quadtree graph, photo realism
-13. **External integration** — Blender SVG export pipeline
-14. **RL environment** — gymnasium env, cairo rasterizer, reward functions
+5. **Effects / Simulation** — cloth, lavalamp, glass distortion, bubbles, ghost, smoke, orbits
+6. **3D extras** — sphere primitive, anaglyph stereo, suggestive contours, deformable surface
+7. **SVG reader** — can write SVGs but can't read them back
+8. **CV utilities** — edges (Canny/CLAHE), segmentation (KMeans), duotone
+9. **Shading** — PolygonShader, arc shading
+10. **I/O** — GCode export, SVG path parser, SVG stitching, AxiDraw driver
+11. **Neural/optimization** — VGG perceptual line placement, quadtree graph, photo realism
+12. **External integration** — Blender SVG export pipeline
+13. **RL environment** — gymnasium env, cairo rasterizer, reward functions
 

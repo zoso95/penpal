@@ -396,3 +396,352 @@ def line_scan(
                                                  dtype=np.float64))
 
     return Paths(all_segments)
+
+
+def dot_grid(
+    image: np.ndarray,
+    spacing: int = 8,
+    max_radius: float = None,
+    min_radius: float = 0.5,
+    sigma: float = 1.0,
+    n_circle_points: int = 16,
+    threshold: float = 240,
+) -> Paths:
+    """Convert a grayscale image to halftone dots on a regular grid.
+
+    Each grid cell gets a circle whose radius is proportional to the
+    local average darkness.
+
+    Parameters
+    ----------
+    image : (H, W) grayscale [0, 255]
+    spacing : int
+        Grid cell size in pixels.
+    max_radius : float, optional
+        Maximum dot radius. Defaults to spacing / 2.
+    min_radius : float
+        Minimum dot radius (dots below this are omitted).
+    sigma : float
+        Gaussian pre-smoothing sigma.
+    n_circle_points : int
+        Points per dot circle.
+    threshold : float
+        Brightness threshold — pixels brighter than this get no dot.
+
+    Returns
+    -------
+    Paths in pixel coordinates.
+    """
+    img = smooth(image, sigma)
+    h, w = img.shape
+
+    if max_radius is None:
+        max_radius = spacing / 2
+
+    theta = np.linspace(0, 2 * np.pi, n_circle_points + 1)
+    cos_t = np.cos(theta)
+    sin_t = np.sin(theta)
+
+    lines = []
+    for row in range(spacing // 2, h, spacing):
+        for col in range(spacing // 2, w, spacing):
+            # Sample local average
+            r0 = max(0, row - spacing // 2)
+            r1 = min(h, row + spacing // 2)
+            c0 = max(0, col - spacing // 2)
+            c1 = min(w, col + spacing // 2)
+            mean_val = img[r0:r1, c0:c1].mean()
+
+            if mean_val > threshold:
+                continue
+
+            # Darker = larger radius (invert brightness)
+            darkness = 1 - mean_val / 255
+            radius = min_radius + darkness * (max_radius - min_radius)
+
+            if radius < min_radius:
+                continue
+
+            circle = np.column_stack([
+                col + radius * cos_t,
+                row + radius * sin_t,
+            ])
+            lines.append(circle)
+
+    return Paths(lines)
+
+
+def dot_grid_cmyk(
+    image_rgb: np.ndarray,
+    spacing: int = 10,
+    max_radius: float = None,
+    sigma: float = 1.0,
+    n_circle_points: int = 16,
+    angles: tuple = (15, 75, 0, 45),
+) -> list[Paths]:
+    """CMYK halftone dots — separate dot grids per color channel.
+
+    Each channel gets a rotated grid to minimize moire interference.
+
+    Parameters
+    ----------
+    image_rgb : (H, W, 3) RGB [0, 255]
+    spacing : int
+        Grid cell size.
+    max_radius : float, optional
+        Maximum dot radius.
+    sigma : float
+        Pre-smoothing.
+    n_circle_points : int
+        Points per circle.
+    angles : tuple of 4 floats
+        Grid rotation angles in degrees for C, M, Y, K channels.
+
+    Returns
+    -------
+    list of 4 Paths (C, M, Y, K) in pixel coordinates.
+    """
+    if max_radius is None:
+        max_radius = spacing / 2
+
+    # Convert RGB to CMYK
+    rgb = image_rgb.astype(float) / 255
+    k = 1 - np.max(rgb, axis=2)
+    c = np.where(k < 1, (1 - rgb[:, :, 0] - k) / (1 - k + 1e-10), 0)
+    m = np.where(k < 1, (1 - rgb[:, :, 1] - k) / (1 - k + 1e-10), 0)
+    y = np.where(k < 1, (1 - rgb[:, :, 2] - k) / (1 - k + 1e-10), 0)
+
+    channels = [c, m, y, k]
+    result = []
+
+    for ch, angle in zip(channels, angles):
+        # Convert channel to "image" (0=no ink, 255=full ink -> invert for dot_grid)
+        ch_img = (1 - ch) * 255
+        result.append(dot_grid(ch_img, spacing=spacing, max_radius=max_radius,
+                               sigma=sigma, n_circle_points=n_circle_points))
+
+    return result
+
+
+def mezzotint(
+    image: np.ndarray,
+    n_points: int = 50000,
+    dot_radius: float = 1.0,
+    n_circle_points: int = 8,
+    sigma: float = 1.0,
+    seed: int | None = None,
+) -> Paths:
+    """Mezzotint / importance-sampled stippling.
+
+    Places dots randomly with probability proportional to image darkness
+    (multinomial sampling). Denser stippling in darker areas.
+
+    Parameters
+    ----------
+    image : (H, W) grayscale [0, 255]
+    n_points : int
+        Total number of stipple dots.
+    dot_radius : float
+        Radius of each dot circle.
+    n_circle_points : int
+        Points per dot circle.
+    sigma : float
+        Pre-smoothing.
+    seed : int, optional
+        Random seed.
+
+    Returns
+    -------
+    Paths in pixel coordinates.
+    """
+    rng = np.random.default_rng(seed)
+    img = smooth(image, sigma)
+    h, w = img.shape
+
+    # Invert: dark pixels = high probability
+    darkness = 255 - img
+    darkness = np.clip(darkness, 0, None)
+
+    # Flatten to PMF
+    flat = darkness.ravel()
+    total = flat.sum()
+    if total <= 0:
+        return Paths()
+    pmf = flat / total
+
+    # Multinomial sampling
+    counts = rng.multinomial(n_points, pmf)
+
+    theta = np.linspace(0, 2 * np.pi, n_circle_points + 1)
+    cos_t = np.cos(theta)
+    sin_t = np.sin(theta)
+
+    lines = []
+    for pixel_idx in np.nonzero(counts)[0]:
+        row = pixel_idx // w
+        col = pixel_idx % w
+        count = counts[pixel_idx]
+        for _ in range(count):
+            # Jitter within pixel
+            cx = col + rng.uniform(-0.5, 0.5)
+            cy = row + rng.uniform(-0.5, 0.5)
+            circle = np.column_stack([cx + dot_radius * cos_t,
+                                      cy + dot_radius * sin_t])
+            lines.append(circle)
+
+    return Paths(lines)
+
+
+def voronoi_stipple(
+    image: np.ndarray,
+    n_points: int = 2000,
+    sigma: float = 2.0,
+    show_edges: bool = True,
+    show_points: bool = False,
+    dot_radius: float = 1.5,
+    seed: int | None = None,
+) -> Paths:
+    """Voronoi-based stippling weighted by image darkness.
+
+    Samples points with density proportional to image darkness using
+    rejection sampling, then computes Voronoi diagram. Returns either
+    Voronoi edges, stipple dots, or both.
+
+    Parameters
+    ----------
+    image : (H, W) grayscale [0, 255]
+    n_points : int
+        Number of sample points.
+    sigma : float
+        Pre-smoothing.
+    show_edges : bool
+        Include Voronoi ridge edges.
+    show_points : bool
+        Include dot marks at Voronoi sites.
+    dot_radius : float
+        Radius of dot marks (if show_points=True).
+    seed : int, optional
+        Random seed.
+
+    Returns
+    -------
+    Paths in pixel coordinates.
+    """
+    from scipy.spatial import Voronoi
+
+    rng = np.random.default_rng(seed)
+    img = smooth(image, sigma)
+    h, w = img.shape
+
+    # Importance sampling via rejection
+    darkness = 255 - img
+    max_dark = darkness.max()
+    if max_dark <= 0:
+        return Paths()
+
+    points = []
+    while len(points) < n_points:
+        batch_size = n_points * 3
+        xs = rng.uniform(0, w, batch_size)
+        ys = rng.uniform(0, h, batch_size)
+        px = np.clip(xs.astype(int), 0, w - 1)
+        py = np.clip(ys.astype(int), 0, h - 1)
+        probs = darkness[py, px] / max_dark
+        accept = rng.random(batch_size) < probs
+        accepted = np.column_stack([xs[accept], ys[accept]])
+        points.append(accepted)
+    points = np.vstack(points)[:n_points]
+
+    vor = Voronoi(points)
+
+    lines = []
+
+    if show_edges:
+        for start, finish in vor.ridge_vertices:
+            if start == -1 or finish == -1:
+                continue
+            v0 = vor.vertices[start]
+            v1 = vor.vertices[finish]
+            # Clip to image bounds
+            if (0 <= v0[0] <= w and 0 <= v0[1] <= h and
+                    0 <= v1[0] <= w and 0 <= v1[1] <= h):
+                lines.append(np.array([v0, v1]))
+
+    if show_points:
+        theta = np.linspace(0, 2 * np.pi, 9)
+        for cx, cy in points:
+            dot = np.column_stack([cx + dot_radius * np.cos(theta),
+                                   cy + dot_radius * np.sin(theta)])
+            lines.append(dot)
+
+    return Paths(lines)
+
+
+def spiral_portrait(
+    image: np.ndarray,
+    n_turns: int = 80,
+    center: tuple = None,
+    amplitude_scale: float = 3.0,
+    frequency_scale: float = 8.0,
+    sigma: float = 2.0,
+    n_points_per_turn: int = 200,
+) -> Paths:
+    """Convert image to an Archimedean spiral with brightness-modulated amplitude.
+
+    A single spiral traces from center outward. At each point along the
+    spiral, the sine-wave amplitude is modulated by the local image darkness,
+    creating a TSP-art-like portrait from a single continuous curve.
+
+    Parameters
+    ----------
+    image : (H, W) grayscale [0, 255]
+    n_turns : int
+        Number of spiral turns.
+    center : tuple, optional
+        Spiral center in pixel coords. Defaults to image center.
+    amplitude_scale : float
+        Maximum wave amplitude (in pixels).
+    frequency_scale : float
+        Wave frequency multiplier (waves per turn).
+    sigma : float
+        Pre-smoothing.
+    n_points_per_turn : int
+        Resolution of spiral per turn.
+
+    Returns
+    -------
+    Paths in pixel coordinates (single continuous polyline).
+    """
+    img = smooth(image, sigma)
+    h, w = img.shape
+
+    if center is None:
+        center = (w / 2, h / 2)
+    cx, cy = center
+
+    max_r = min(w, h) / 2 * 0.95
+    n_total = n_turns * n_points_per_turn
+    t = np.linspace(0, n_turns * 2 * np.pi, n_total)
+
+    # Archimedean spiral radius
+    r_base = max_r * t / (n_turns * 2 * np.pi)
+
+    # Sample image darkness along spiral
+    x_spiral = cx + r_base * np.cos(t)
+    y_spiral = cy + r_base * np.sin(t)
+
+    px = np.clip(x_spiral.astype(int), 0, w - 1)
+    py = np.clip(y_spiral.astype(int), 0, h - 1)
+    darkness = (255 - img[py, px]) / 255  # 0=white, 1=black
+
+    # Modulate radius with sine wave whose amplitude depends on darkness
+    wave = amplitude_scale * darkness * np.sin(frequency_scale * t)
+
+    # Add wave perpendicular to spiral direction
+    dx = -np.sin(t)
+    dy = np.cos(t)
+    x_final = x_spiral + wave * dx
+    y_final = y_spiral + wave * dy
+
+    pts = np.column_stack([x_final, y_final])
+    return Paths([pts])

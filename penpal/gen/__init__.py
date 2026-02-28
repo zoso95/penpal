@@ -6,3 +6,9 @@ from penpal.gen.grids import (
 )
 from penpal.gen.fields import flow_field, noise_walk
 from penpal.gen import flow
+from penpal.gen import attractors
+from penpal.gen import ifs
+from penpal.gen import contours
+from penpal.gen import envelopes
+from penpal.gen import spline_waves
+from penpal.gen import polar

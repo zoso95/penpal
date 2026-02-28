@@ -19,5 +19,6 @@ from penpal import shading
 from penpal import symmetry
 from penpal import render3d
 from penpal import cv
+from penpal import effects
 
 __version__ = "0.1.0"
