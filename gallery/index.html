@@ -11,48 +11,327 @@
   header h1 { font-size: 2.5rem; font-weight: 300; letter-spacing: 0.15em; text-transform: lowercase; }
   header p { color: #888; margin-top: 0.5rem; font-size: 1.1rem; }
   header a { color: #6ba3d6; text-decoration: none; }
-  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2px; padding: 0 2px; max-width: 1400px; margin: 0 auto; }
-  .card { position: relative; overflow: hidden; background: #111; }
-  .card img { width: 100%; display: block; transition: transform 0.3s ease; }
-  .card:hover img { transform: scale(1.02); }
-  .card .label { position: absolute; bottom: 0; left: 0; right: 0; padding: 0.6rem 0.8rem; background: linear-gradient(transparent, rgba(0,0,0,0.85)); font-size: 0.85rem; color: #ccc; letter-spacing: 0.05em; }
+  .section { max-width: 1400px; margin: 0 auto; padding: 0 1rem; }
+  .section h2 { font-size: 1.3rem; font-weight: 400; letter-spacing: 0.1em; text-transform: lowercase; color: #888; padding: 2rem 0 0.8rem; border-top: 1px solid #222; margin-top: 1rem; }
+  .section:first-of-type h2 { border-top: none; margin-top: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 4px; }
+  .card { position: relative; overflow: hidden; background: #111; border-radius: 2px; }
+  .card img, .card object { width: 100%; display: block; background: white; min-height: 150px; }
+  .card:hover { outline: 1px solid #333; }
   footer { text-align: center; padding: 3rem 1rem; color: #555; font-size: 0.85rem; }
   footer a { color: #6ba3d6; text-decoration: none; }
+  .count { color: #555; font-size: 0.85rem; margin-left: 0.5rem; }
 </style>
 </head>
 <body>
 <header>
   <h1>penpal</h1>
   <p>generative plotter art library &mdash; <a href="https://github.com/zoso95/penpal">github.com/zoso95/penpal</a></p>
+  <p style="color:#555; margin-top:0.3rem; font-size:0.95rem;">159 outputs across 29 techniques</p>
 </header>
-<div class="gallery">
-  <div class="card"><img src="03_flow_fields.png" alt="Flow Fields"><div class="label">Flow Fields</div></div>
-  <div class="card"><img src="02_attractors.png" alt="Strange Attractors"><div class="label">Strange Attractors</div></div>
-  <div class="card"><img src="11_moire.png" alt="Moire Patterns"><div class="label">Moire Patterns</div></div>
-  <div class="card"><img src="24_portrait_warp.png" alt="Portrait Warp"><div class="label">Portrait Warp (Bradway)</div></div>
-  <div class="card"><img src="25_death_textures.png" alt="Death Textures"><div class="label">Death Textures</div></div>
-  <div class="card"><img src="23_halftone.png" alt="Crosshatch Halftone"><div class="label">Crosshatch Halftone</div></div>
-  <div class="card"><img src="12_cloth_drape.png" alt="Cloth Drape"><div class="label">Cloth Drape</div></div>
-  <div class="card"><img src="21_braid.png" alt="Braid"><div class="label">Braid / Weave</div></div>
-  <div class="card"><img src="22_perspective_drape.png" alt="Perspective Drape"><div class="label">Perspective Drape</div></div>
-  <div class="card"><img src="27_stl_sketch.png" alt="STL Sketch"><div class="label">NPR Sketch (3D STL)</div></div>
-  <div class="card"><img src="07_envelopes.png" alt="Envelopes"><div class="label">Line Envelopes</div></div>
-  <div class="card"><img src="06_fractals.png" alt="Fractals"><div class="label">Fractals</div></div>
-  <div class="card"><img src="15_wallpaper.png" alt="Wallpaper Groups"><div class="label">Wallpaper Groups</div></div>
-  <div class="card"><img src="10_mandala.png" alt="Mandala"><div class="label">Mandala</div></div>
-  <div class="card"><img src="16_droste.png" alt="Droste Effect"><div class="label">Droste Effect</div></div>
-  <div class="card"><img src="17_voronoi_hatched.png" alt="Voronoi Hatched"><div class="label">Voronoi Hatched</div></div>
-  <div class="card"><img src="08_contours.png" alt="Contours"><div class="label">Contours</div></div>
-  <div class="card"><img src="09_spline_waves.png" alt="Spline Waves"><div class="label">Spline Waves</div></div>
-  <div class="card"><img src="14_metaballs.png" alt="Metaballs"><div class="label">Metaballs</div></div>
-  <div class="card"><img src="13_polar_ribbons.png" alt="Polar Ribbons"><div class="label">Polar Ribbons</div></div>
-  <div class="card"><img src="26_dithering.png" alt="Dithering"><div class="label">Atkinson Dithering</div></div>
-  <div class="card"><img src="04_noise_grid.png" alt="Noise Grid"><div class="label">Noise Grid</div></div>
-  <div class="card"><img src="05_polar_noise_grid.png" alt="Polar Noise Grid"><div class="label">Polar Noise Grid</div></div>
-  <div class="card"><img src="20_lissajous.png" alt="Lissajous"><div class="label">Lissajous Curves</div></div>
-  <div class="card"><img src="19_barrel_distortion.png" alt="Barrel Distortion"><div class="label">Barrel Distortion</div></div>
-  <div class="card"><img src="18_shading_fills.png" alt="Shading"><div class="label">Polygon Shading</div></div>
-  <div class="card"><img src="01_basics.png" alt="Basics"><div class="label">Basics</div></div>
+<div class="section">
+  <h2>Flow Fields<span class="count">(8)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/flow_fields_00.svg" alt="Flow Fields"></div>
+    <div class="card"><img src="notebooks/flow_fields_01.svg" alt="Flow Fields"></div>
+    <div class="card"><img src="notebooks/flow_fields_02.svg" alt="Flow Fields"></div>
+    <div class="card"><img src="notebooks/flow_fields_03.svg" alt="Flow Fields"></div>
+    <div class="card"><img src="notebooks/flow_fields_04.svg" alt="Flow Fields"></div>
+    <div class="card"><img src="notebooks/flow_fields_05.svg" alt="Flow Fields"></div>
+    <div class="card"><img src="notebooks/flow_fields_06.svg" alt="Flow Fields"></div>
+    <div class="card"><img src="notebooks/flow_fields_07.svg" alt="Flow Fields"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Death Textures<span class="count">(13)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/death_textures_00.png" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_01.svg" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_02.svg" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_03.svg" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_04.png" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_05.svg" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_06.png" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_07.svg" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_08.png" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_09.svg" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_10.svg" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_11.png" alt="Death Textures"></div>
+    <div class="card"><img src="notebooks/death_textures_12.svg" alt="Death Textures"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Portrait Warp<span class="count">(13)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/portrait_warp_00.png" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_01.svg" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_02.svg" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_03.svg" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_04.svg" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_05.png" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_06.svg" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_07.svg" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_08.png" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_09.png" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_10.svg" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_11.png" alt="Portrait Warp"></div>
+    <div class="card"><img src="notebooks/portrait_warp_12.svg" alt="Portrait Warp"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Strange Attractors<span class="count">(7)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/attractors_00.svg" alt="Strange Attractors"></div>
+    <div class="card"><img src="notebooks/attractors_01.svg" alt="Strange Attractors"></div>
+    <div class="card"><img src="notebooks/attractors_02.svg" alt="Strange Attractors"></div>
+    <div class="card"><img src="notebooks/attractors_03.svg" alt="Strange Attractors"></div>
+    <div class="card"><img src="notebooks/attractors_04.svg" alt="Strange Attractors"></div>
+    <div class="card"><img src="notebooks/attractors_05.svg" alt="Strange Attractors"></div>
+    <div class="card"><img src="notebooks/attractors_06.svg" alt="Strange Attractors"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Moire Patterns<span class="count">(10)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/moire_patterns_00.svg" alt="Moire Patterns"></div>
+    <div class="card"><img src="notebooks/moire_patterns_01.svg" alt="Moire Patterns"></div>
+    <div class="card"><img src="notebooks/moire_patterns_02.svg" alt="Moire Patterns"></div>
+    <div class="card"><img src="notebooks/moire_patterns_03.svg" alt="Moire Patterns"></div>
+    <div class="card"><img src="notebooks/moire_patterns_04.svg" alt="Moire Patterns"></div>
+    <div class="card"><img src="notebooks/moire_patterns_05.svg" alt="Moire Patterns"></div>
+    <div class="card"><img src="notebooks/moire_patterns_06.svg" alt="Moire Patterns"></div>
+    <div class="card"><img src="notebooks/moire_patterns_07.svg" alt="Moire Patterns"></div>
+    <div class="card"><img src="notebooks/moire_patterns_08.svg" alt="Moire Patterns"></div>
+    <div class="card"><img src="notebooks/moire_patterns_09.svg" alt="Moire Patterns"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Cloth Drapes & Braids<span class="count">(8)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/cloth_drapes_00.svg" alt="Cloth Drapes & Braids"></div>
+    <div class="card"><img src="notebooks/cloth_drapes_01.svg" alt="Cloth Drapes & Braids"></div>
+    <div class="card"><img src="notebooks/cloth_drapes_02.svg" alt="Cloth Drapes & Braids"></div>
+    <div class="card"><img src="notebooks/cloth_drapes_03.svg" alt="Cloth Drapes & Braids"></div>
+    <div class="card"><img src="notebooks/cloth_drapes_04.svg" alt="Cloth Drapes & Braids"></div>
+    <div class="card"><img src="notebooks/cloth_drapes_05.svg" alt="Cloth Drapes & Braids"></div>
+    <div class="card"><img src="notebooks/cloth_drapes_06.svg" alt="Cloth Drapes & Braids"></div>
+    <div class="card"><img src="notebooks/cloth_drapes_07.svg" alt="Cloth Drapes & Braids"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Halftone<span class="count">(8)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/halftone_00.png" alt="Halftone"></div>
+    <div class="card"><img src="notebooks/halftone_01.svg" alt="Halftone"></div>
+    <div class="card"><img src="notebooks/halftone_02.svg" alt="Halftone"></div>
+    <div class="card"><img src="notebooks/halftone_03.svg" alt="Halftone"></div>
+    <div class="card"><img src="notebooks/halftone_04.svg" alt="Halftone"></div>
+    <div class="card"><img src="notebooks/halftone_05.svg" alt="Halftone"></div>
+    <div class="card"><img src="notebooks/halftone_06.svg" alt="Halftone"></div>
+    <div class="card"><img src="notebooks/halftone_07.svg" alt="Halftone"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Halftone Gallery<span class="count">(4)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/halftone_gallery_00.svg" alt="Halftone Gallery"></div>
+    <div class="card"><img src="notebooks/halftone_gallery_01.svg" alt="Halftone Gallery"></div>
+    <div class="card"><img src="notebooks/halftone_gallery_02.svg" alt="Halftone Gallery"></div>
+    <div class="card"><img src="notebooks/halftone_gallery_03.svg" alt="Halftone Gallery"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>NPR Sketch (3D)<span class="count">(3)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/stl_sketch_00.svg" alt="NPR Sketch (3D)"></div>
+    <div class="card"><img src="notebooks/stl_sketch_01.svg" alt="NPR Sketch (3D)"></div>
+    <div class="card"><img src="notebooks/stl_sketch_02.svg" alt="NPR Sketch (3D)"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Flame Fractals<span class="count">(5)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/fractals_00.svg" alt="Flame Fractals"></div>
+    <div class="card"><img src="notebooks/fractals_01.svg" alt="Flame Fractals"></div>
+    <div class="card"><img src="notebooks/fractals_02.svg" alt="Flame Fractals"></div>
+    <div class="card"><img src="notebooks/fractals_03.svg" alt="Flame Fractals"></div>
+    <div class="card"><img src="notebooks/fractals_04.svg" alt="Flame Fractals"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Line Envelopes<span class="count">(6)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/envelopes_00.svg" alt="Line Envelopes"></div>
+    <div class="card"><img src="notebooks/envelopes_01.svg" alt="Line Envelopes"></div>
+    <div class="card"><img src="notebooks/envelopes_02.svg" alt="Line Envelopes"></div>
+    <div class="card"><img src="notebooks/envelopes_03.svg" alt="Line Envelopes"></div>
+    <div class="card"><img src="notebooks/envelopes_04.svg" alt="Line Envelopes"></div>
+    <div class="card"><img src="notebooks/envelopes_05.svg" alt="Line Envelopes"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Droste Effect<span class="count">(6)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/droste_effect_00.svg" alt="Droste Effect"></div>
+    <div class="card"><img src="notebooks/droste_effect_01.svg" alt="Droste Effect"></div>
+    <div class="card"><img src="notebooks/droste_effect_02.svg" alt="Droste Effect"></div>
+    <div class="card"><img src="notebooks/droste_effect_03.svg" alt="Droste Effect"></div>
+    <div class="card"><img src="notebooks/droste_effect_04.svg" alt="Droste Effect"></div>
+    <div class="card"><img src="notebooks/droste_effect_05.svg" alt="Droste Effect"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Wallpaper Groups<span class="count">(6)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/wallpaper_groups_00.svg" alt="Wallpaper Groups"></div>
+    <div class="card"><img src="notebooks/wallpaper_groups_01.svg" alt="Wallpaper Groups"></div>
+    <div class="card"><img src="notebooks/wallpaper_groups_02.svg" alt="Wallpaper Groups"></div>
+    <div class="card"><img src="notebooks/wallpaper_groups_03.svg" alt="Wallpaper Groups"></div>
+    <div class="card"><img src="notebooks/wallpaper_groups_04.svg" alt="Wallpaper Groups"></div>
+    <div class="card"><img src="notebooks/wallpaper_groups_05.svg" alt="Wallpaper Groups"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Mandalas<span class="count">(4)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/mandalas_00.svg" alt="Mandalas"></div>
+    <div class="card"><img src="notebooks/mandalas_01.svg" alt="Mandalas"></div>
+    <div class="card"><img src="notebooks/mandalas_02.svg" alt="Mandalas"></div>
+    <div class="card"><img src="notebooks/mandalas_03.svg" alt="Mandalas"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Voronoi Hatched<span class="count">(2)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/voronoi_hatched_00.svg" alt="Voronoi Hatched"></div>
+    <div class="card"><img src="notebooks/voronoi_hatched_01.svg" alt="Voronoi Hatched"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Contour Lines<span class="count">(5)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/contours_00.svg" alt="Contour Lines"></div>
+    <div class="card"><img src="notebooks/contours_01.svg" alt="Contour Lines"></div>
+    <div class="card"><img src="notebooks/contours_02.svg" alt="Contour Lines"></div>
+    <div class="card"><img src="notebooks/contours_03.svg" alt="Contour Lines"></div>
+    <div class="card"><img src="notebooks/contours_04.svg" alt="Contour Lines"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Dithering<span class="count">(6)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/dithering_00.svg" alt="Dithering"></div>
+    <div class="card"><img src="notebooks/dithering_01.svg" alt="Dithering"></div>
+    <div class="card"><img src="notebooks/dithering_02.svg" alt="Dithering"></div>
+    <div class="card"><img src="notebooks/dithering_03.svg" alt="Dithering"></div>
+    <div class="card"><img src="notebooks/dithering_04.svg" alt="Dithering"></div>
+    <div class="card"><img src="notebooks/dithering_05.svg" alt="Dithering"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Metaballs<span class="count">(5)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/metaballs_00.svg" alt="Metaballs"></div>
+    <div class="card"><img src="notebooks/metaballs_01.svg" alt="Metaballs"></div>
+    <div class="card"><img src="notebooks/metaballs_02.svg" alt="Metaballs"></div>
+    <div class="card"><img src="notebooks/metaballs_03.svg" alt="Metaballs"></div>
+    <div class="card"><img src="notebooks/metaballs_04.svg" alt="Metaballs"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Polar Ribbons<span class="count">(6)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/polar_ribbons_00.svg" alt="Polar Ribbons"></div>
+    <div class="card"><img src="notebooks/polar_ribbons_01.svg" alt="Polar Ribbons"></div>
+    <div class="card"><img src="notebooks/polar_ribbons_02.svg" alt="Polar Ribbons"></div>
+    <div class="card"><img src="notebooks/polar_ribbons_03.svg" alt="Polar Ribbons"></div>
+    <div class="card"><img src="notebooks/polar_ribbons_04.svg" alt="Polar Ribbons"></div>
+    <div class="card"><img src="notebooks/polar_ribbons_05.svg" alt="Polar Ribbons"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Spline Waves<span class="count">(4)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/spline_waves_00.svg" alt="Spline Waves"></div>
+    <div class="card"><img src="notebooks/spline_waves_01.svg" alt="Spline Waves"></div>
+    <div class="card"><img src="notebooks/spline_waves_02.svg" alt="Spline Waves"></div>
+    <div class="card"><img src="notebooks/spline_waves_03.svg" alt="Spline Waves"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Shading & Fills<span class="count">(6)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/shading_fills_00.svg" alt="Shading & Fills"></div>
+    <div class="card"><img src="notebooks/shading_fills_01.svg" alt="Shading & Fills"></div>
+    <div class="card"><img src="notebooks/shading_fills_02.svg" alt="Shading & Fills"></div>
+    <div class="card"><img src="notebooks/shading_fills_03.svg" alt="Shading & Fills"></div>
+    <div class="card"><img src="notebooks/shading_fills_04.svg" alt="Shading & Fills"></div>
+    <div class="card"><img src="notebooks/shading_fills_05.svg" alt="Shading & Fills"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Noise Types<span class="count">(8)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/noise_types_00.svg" alt="Noise Types"></div>
+    <div class="card"><img src="notebooks/noise_types_01.svg" alt="Noise Types"></div>
+    <div class="card"><img src="notebooks/noise_types_02.svg" alt="Noise Types"></div>
+    <div class="card"><img src="notebooks/noise_types_03.svg" alt="Noise Types"></div>
+    <div class="card"><img src="notebooks/noise_types_04.svg" alt="Noise Types"></div>
+    <div class="card"><img src="notebooks/noise_types_05.svg" alt="Noise Types"></div>
+    <div class="card"><img src="notebooks/noise_types_06.svg" alt="Noise Types"></div>
+    <div class="card"><img src="notebooks/noise_types_07.svg" alt="Noise Types"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Noise Grid<span class="count">(1)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/noise_grid_00.svg" alt="Noise Grid"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Polar Noise Grid<span class="count">(1)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/polar_noise_grid_00.svg" alt="Polar Noise Grid"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Easing Effects<span class="count">(4)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/easing_effects_00.svg" alt="Easing Effects"></div>
+    <div class="card"><img src="notebooks/easing_effects_01.svg" alt="Easing Effects"></div>
+    <div class="card"><img src="notebooks/easing_effects_02.svg" alt="Easing Effects"></div>
+    <div class="card"><img src="notebooks/easing_effects_03.svg" alt="Easing Effects"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>3D Interactive<span class="count">(4)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/3d_interactive_00.svg" alt="3D Interactive"></div>
+    <div class="card"><img src="notebooks/3d_interactive_01.svg" alt="3D Interactive"></div>
+    <div class="card"><img src="notebooks/3d_interactive_02.svg" alt="3D Interactive"></div>
+    <div class="card"><img src="notebooks/3d_interactive_03.svg" alt="3D Interactive"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Voronoi Depth<span class="count">(1)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/voronoi_depth_00.svg" alt="Voronoi Depth"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Rainbow Rings<span class="count">(1)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/rainbow_rings_00.svg" alt="Rainbow Rings"></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Basics<span class="count">(4)</span></h2>
+  <div class="grid">
+    <div class="card"><img src="notebooks/00_basics_00.svg" alt="Basics"></div>
+    <div class="card"><img src="notebooks/00_basics_01.svg" alt="Basics"></div>
+    <div class="card"><img src="notebooks/00_basics_02.svg" alt="Basics"></div>
+    <div class="card"><img src="notebooks/00_basics_03.svg" alt="Basics"></div>
+  </div>
 </div>
 <footer>
   <p>all output is pen-plotter-ready SVG &mdash; made with <a href="https://github.com/zoso95/penpal">penpal</a></p>
