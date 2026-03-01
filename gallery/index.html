@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>penpal — Generative Plotter Art Gallery</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; }
+  header { text-align: center; padding: 3rem 1rem 2rem; }
+  header h1 { font-size: 2.5rem; font-weight: 300; letter-spacing: 0.15em; text-transform: lowercase; }
+  header p { color: #888; margin-top: 0.5rem; font-size: 1.1rem; }
+  header a { color: #6ba3d6; text-decoration: none; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2px; padding: 0 2px; max-width: 1400px; margin: 0 auto; }
+  .card { position: relative; overflow: hidden; background: #111; }
+  .card img { width: 100%; display: block; transition: transform 0.3s ease; }
+  .card:hover img { transform: scale(1.02); }
+  .card .label { position: absolute; bottom: 0; left: 0; right: 0; padding: 0.6rem 0.8rem; background: linear-gradient(transparent, rgba(0,0,0,0.85)); font-size: 0.85rem; color: #ccc; letter-spacing: 0.05em; }
+  footer { text-align: center; padding: 3rem 1rem; color: #555; font-size: 0.85rem; }
+  footer a { color: #6ba3d6; text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>penpal</h1>
+  <p>generative plotter art library &mdash; <a href="https://github.com/zoso95/penpal">github.com/zoso95/penpal</a></p>
+</header>
+<div class="gallery">
+  <div class="card"><img src="03_flow_fields.png" alt="Flow Fields"><div class="label">Flow Fields</div></div>
+  <div class="card"><img src="02_attractors.png" alt="Strange Attractors"><div class="label">Strange Attractors</div></div>
+  <div class="card"><img src="11_moire.png" alt="Moire Patterns"><div class="label">Moire Patterns</div></div>
+  <div class="card"><img src="24_portrait_warp.png" alt="Portrait Warp"><div class="label">Portrait Warp (Bradway)</div></div>
+  <div class="card"><img src="25_death_textures.png" alt="Death Textures"><div class="label">Death Textures</div></div>
+  <div class="card"><img src="23_halftone.png" alt="Crosshatch Halftone"><div class="label">Crosshatch Halftone</div></div>
+  <div class="card"><img src="12_cloth_drape.png" alt="Cloth Drape"><div class="label">Cloth Drape</div></div>
+  <div class="card"><img src="21_braid.png" alt="Braid"><div class="label">Braid / Weave</div></div>
+  <div class="card"><img src="22_perspective_drape.png" alt="Perspective Drape"><div class="label">Perspective Drape</div></div>
+  <div class="card"><img src="27_stl_sketch.png" alt="STL Sketch"><div class="label">NPR Sketch (3D STL)</div></div>
+  <div class="card"><img src="07_envelopes.png" alt="Envelopes"><div class="label">Line Envelopes</div></div>
+  <div class="card"><img src="06_fractals.png" alt="Fractals"><div class="label">Fractals</div></div>
+  <div class="card"><img src="15_wallpaper.png" alt="Wallpaper Groups"><div class="label">Wallpaper Groups</div></div>
+  <div class="card"><img src="10_mandala.png" alt="Mandala"><div class="label">Mandala</div></div>
+  <div class="card"><img src="16_droste.png" alt="Droste Effect"><div class="label">Droste Effect</div></div>
+  <div class="card"><img src="17_voronoi_hatched.png" alt="Voronoi Hatched"><div class="label">Voronoi Hatched</div></div>
+  <div class="card"><img src="08_contours.png" alt="Contours"><div class="label">Contours</div></div>
+  <div class="card"><img src="09_spline_waves.png" alt="Spline Waves"><div class="label">Spline Waves</div></div>
+  <div class="card"><img src="14_metaballs.png" alt="Metaballs"><div class="label">Metaballs</div></div>
+  <div class="card"><img src="13_polar_ribbons.png" alt="Polar Ribbons"><div class="label">Polar Ribbons</div></div>
+  <div class="card"><img src="26_dithering.png" alt="Dithering"><div class="label">Atkinson Dithering</div></div>
+  <div class="card"><img src="04_noise_grid.png" alt="Noise Grid"><div class="label">Noise Grid</div></div>
+  <div class="card"><img src="05_polar_noise_grid.png" alt="Polar Noise Grid"><div class="label">Polar Noise Grid</div></div>
+  <div class="card"><img src="20_lissajous.png" alt="Lissajous"><div class="label">Lissajous Curves</div></div>
+  <div class="card"><img src="19_barrel_distortion.png" alt="Barrel Distortion"><div class="label">Barrel Distortion</div></div>
+  <div class="card"><img src="18_shading_fills.png" alt="Shading"><div class="label">Polygon Shading</div></div>
+  <div class="card"><img src="01_basics.png" alt="Basics"><div class="label">Basics</div></div>
+</div>
+<footer>
+  <p>all output is pen-plotter-ready SVG &mdash; made with <a href="https://github.com/zoso95/penpal">penpal</a></p>
+</footer>
+</body>
+</html>

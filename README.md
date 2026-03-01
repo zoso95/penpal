@@ -12,33 +12,48 @@ Generators -> Paths -> Layer -> Drawing -> SVG / matplotlib
 
 <p align="center">
 <img src="gallery/03_flow_fields.png" width="30%" />
-<img src="gallery/12_cloth_drape.png" width="30%" />
 <img src="gallery/11_moire.png" width="30%" />
-</p>
-<p align="center">
-<img src="gallery/02_attractors.png" width="30%" />
-<img src="gallery/23_halftone.png" width="30%" />
-<img src="gallery/15_wallpaper.png" width="30%" />
+<img src="gallery/24_portrait_warp.png" width="30%" />
 </p>
 <p align="center">
 <img src="gallery/25_death_textures.png" width="30%" />
-<img src="gallery/06_fractals.png" width="30%" />
-<img src="gallery/07_envelopes.png" width="30%" />
+<img src="gallery/02_attractors.png" width="30%" />
+<img src="gallery/23_halftone.png" width="30%" />
 </p>
 <p align="center">
-<img src="gallery/24_portrait_warp.png" width="30%" />
-<img src="gallery/10_mandala.png" width="30%" />
-<img src="gallery/27_stl_sketch.png" width="30%" />
-</p>
-<p align="center">
+<img src="gallery/12_cloth_drape.png" width="30%" />
 <img src="gallery/21_braid.png" width="30%" />
 <img src="gallery/22_perspective_drape.png" width="30%" />
-<img src="gallery/26_dithering.png" width="30%" />
+</p>
+<p align="center">
+<img src="gallery/27_stl_sketch.png" width="30%" />
+<img src="gallery/07_envelopes.png" width="30%" />
+<img src="gallery/06_fractals.png" width="30%" />
+</p>
+<p align="center">
+<img src="gallery/15_wallpaper.png" width="30%" />
+<img src="gallery/10_mandala.png" width="30%" />
+<img src="gallery/16_droste.png" width="30%" />
 </p>
 <p align="center">
 <img src="gallery/17_voronoi_hatched.png" width="30%" />
-<img src="gallery/09_spline_waves.png" width="30%" />
 <img src="gallery/08_contours.png" width="30%" />
+<img src="gallery/09_spline_waves.png" width="30%" />
+</p>
+<p align="center">
+<img src="gallery/14_metaballs.png" width="30%" />
+<img src="gallery/26_dithering.png" width="30%" />
+<img src="gallery/13_polar_ribbons.png" width="30%" />
+</p>
+<p align="center">
+<img src="gallery/20_lissajous.png" width="30%" />
+<img src="gallery/04_noise_grid.png" width="30%" />
+<img src="gallery/05_polar_noise_grid.png" width="30%" />
+</p>
+<p align="center">
+<img src="gallery/19_barrel_distortion.png" width="30%" />
+<img src="gallery/18_shading_fills.png" width="30%" />
+<img src="gallery/01_basics.png" width="30%" />
 </p>
 
 ## Quick Start
