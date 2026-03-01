@@ -12,3 +12,4 @@ from penpal.gen import contours
 from penpal.gen import envelopes
 from penpal.gen import spline_waves
 from penpal.gen import polar
+from penpal.gen import cloth

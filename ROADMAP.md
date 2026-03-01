@@ -64,6 +64,7 @@ SVG-only output archive (~170+ printed SVGs, project experiments). No source cod
 | `gen/contours.py` | [x] | `axifun/textures.ipynb` | contour_lines, contour_filled, gaussian_bumps, math_contours |
 | `gen/spline_waves.py` | [x] | `axifun/spline waves.ipynb`, `plotter_exps/printed/splines/` | spline_waves, random_walk_waves, evolving_waves |
 | `gen/polar.py` | [x] | `axifun/ribbons.ipynb` | ribbon, ribbon_pair, concentric_ribbons, polar_function, polar_grid |
+| `gen/cloth.py` | [x] | `plotterart/pieces/cloth/` (moire, rainbow_road, line_driven_cloth) | drape, drape_linear, braid, perspective_drape, cloth_fill — boundary curve interpolation with radial noise, cardinal spline smoothing, 3D perspective projection |
 | `gen/ifs.py` | [x] | `axifun/eric_s thing.ipynb` | flame (11 variation functions), barnsley_fern, sierpinski, dragon_curve |
 | `gen/envelopes.py` | [x] | `axifun/1 over x grids.ipynb`, `axifun/front face logo.ipynb` | hyperbolic, diamond, string_art, parabolic_envelope, cardioid_envelope |
 
@@ -153,8 +154,13 @@ SVG-only output archive (~170+ printed SVGs, project experiments). No source cod
 #### Texture / Multi-Scale Decomposition
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
-| `cv/texture.py` — laplacian_pyramid | [ ] | `axifun/laplace pyramid.ipynb` | Decompose image into frequency bands via pyrDown/pyrUp. Each band rendered separately with different line techniques. Recombine for multi-scale detail. |
-| `cv/texture.py` — repeat_blurs | [ ] | `axifun/repeat blurs.ipynb` | Progressive maximum_filter at increasing sizes [5,10,15,20,30,50,100]. Difference between scales reveals patterns at each frequency. Creates organic "snake skin" cell patterns. |
+| `cv/texture.py` — gradient_warp | [x] | `sourcery/image_magic.py` | FFT-gradient displaced pixel grids ("death textures"). Density param for line count control. |
+| `cv/texture.py` — portrait_warp | [x] | `sourcery/image_magic.py` | Two-pass gradient mesh warp + fraction-based tonal masking ("Bradway technique"). |
+| `cv/texture.py` — integral_warp | [x] | `sourcery/image_magic.py` | 1D marginal CDF line redistribution — denser lines in darker regions. |
+| `cv/texture.py` — laplacian_pyramid | [x] | `axifun/laplace pyramid.ipynb` | Decompose image into frequency bands via pyrDown/pyrUp. Each band rendered separately with different line techniques. |
+| `cv/texture.py` — laplacian_blend | [x] | `sandbox/pyramid_blending.ipynb` | Seamless Laplacian pyramid blending of two images with mask. |
+| `cv/texture.py` — repeat_blur_bands | [x] | `axifun/repeat blurs.ipynb` | Progressive maximum_filter at increasing sizes. Difference between scales reveals organic "snake skin" cell patterns. |
+| `cv/datasets.py` | [x] | — | Auto-downloading image dataset library (DTD). Caches to `~/.penpal/datasets/`. |
 | `cv/texture.py` — voronoi_laplacian | [ ] | `axifun/paul replica - vonroni-less dense laplacian good.ipynb` | Poisson disk -> Voronoi regions -> flood-fill color assignment -> per-region shading density from Laplacian band. The "snake skin painting" technique — organic cell-like fills driven by image frequency content. |
 
 #### Image Utilities (remaining)
@@ -266,7 +272,7 @@ New modules — not ported from old code, built fresh. Some have output referenc
 
 | penpal module | Status | Source / Reference | Technique |
 |---|---|---|---|
-| `effects/cloth.py` | [ ] | `plotter_exps/printed/cloth_*.svg`, `metalic_cloth.svg`, `scratch_cloth.svg`, `glitch_cloth.svg`, `smooth_cloth.svg` | Cloth simulation — spring/mass mesh that drapes, wrinkles, folds. Output as displaced line grids or draped patterns. Multiple production pieces exist in archive (chunked, layered, metallic, Emily). |
+| `gen/cloth.py` | [x] | `plotterart/pieces/cloth/`, `plotter_exps/printed/cloth_*.svg` | Cloth drape/braid — boundary curve interpolation with radial noise, cardinal spline smoothing, 3D perspective projection, multi-strand braiding. See also `effects/cloth.py` for future spring/mass physics. |
 | `effects/metaballs.py` | [x] | `plotter_exps/printed/metaballs/` | metaballs, metaball_field, animated_metaballs — sum of 1/r^2 fields, iso-contour extraction |
 | `effects/lavalamp.py` | [ ] | `plotter_exps/printed/lavalamp.svg` | Lava lamp effect — animated metaballs with gravity and buoyancy, possibly frame-captured as static composition. |
 | `effects/glass.py` | [ ] | `plotter_exps/printed/glass_overlay.svg`, `axifun/refraction*.ipynb` | Glass distortion — refracts/displaces lines behind a glass region (lens, pane, sphere). Snell's law or simplified radial distortion of line segments passing through the glass shape. |
@@ -305,6 +311,38 @@ Experimental techniques using ML for line placement.
 | penpal module | Status | Source | Technique |
 |---|---|---|---|
 | `integrations/blender.py` | [ ] | `axifun/blender/`, `axifun/blender/keepers/` | Blender 3D model -> SVG wireframe export pipeline. ~20 Blender wireframe SVGs in archive. |
+| `integrations/mcp.py` | [ ] | — | MCP (Model Context Protocol) server exposing penpal as tools for Claude/LLMs. See design notes below. |
+
+### MCP Server Design Notes
+
+Expose penpal as an MCP tool server so Claude (or any MCP-compatible LLM) can generate plotter art conversationally. Key design questions:
+
+**What to expose:**
+- **High-level generators** as tools: `gradient_warp`, `portrait_warp`, `crosshatch`, `flow_field`, `moire`, etc. Each tool takes params and returns an SVG or image preview.
+- **Drawing management**: create drawing, add layers, save SVG, show preview.
+- **Image loading**: load from path, load from DTD dataset, resize.
+- **Parameter exploration**: render a grid of parameter variations for visual comparison.
+
+**Architecture options:**
+1. **Thin wrapper** — Each penpal function becomes an MCP tool. Claude gets raw control but needs to know the API. Simple to implement.
+2. **Sketch-to-art pipeline** — Higher-level tools like "render this photo as plotter art" that chain multiple steps internally. Easier for Claude to use.
+3. **Hybrid** — High-level convenience tools + low-level building blocks for fine control.
+
+**Preview/feedback loop:**
+- Tools should return SVG or PNG previews so Claude can see what it generated and iterate.
+- Could use `Drawing._repr_svg_()` for inline SVG or render to PNG via matplotlib.
+- Parameter suggestions: tools could return "try adjusting X for more/less Y" hints.
+
+**Session state:**
+- MCP tools are stateless by default. Options:
+  - Return serialized Drawing objects that can be passed back as input.
+  - Server-side session with drawing state (more complex but better UX).
+  - File-based: save to temp directory, return paths.
+
+**Implementation:**
+- Use `mcp` Python SDK (`pip install mcp`).
+- One `penpal-mcp` server entry point.
+- Could ship as `penpal[mcp]` optional dependency.
 
 ---
 
@@ -394,22 +432,24 @@ These exist in multiple places in the old code. Consolidate to one canonical loc
 
 ### Done (usable today)
 - **Core** — Drawing, Paths, Layers, transforms, line ops, geo clipping, mesh, noise
-- **Generators** — curves, grids, fields, flow tracing, attractors (Lorenz/Rossler/Clifford/de Jong/Bedhead/random), IFS/flame fractals (11 variations + Barnsley/Sierpinski/dragon), contour extraction (math/gaussian/scalar fields), line envelopes (hyperbolic/diamond/string art/parabolic/cardioid), spline waves (physics/random walk/evolving), polar/ribbons (ribbon fills, concentric ribbons, polar grid), moire (oil slick/metallic/rotated/concentric/surface contour)
+- **Generators** — curves, grids, fields, flow tracing, attractors (Lorenz/Rossler/Clifford/de Jong/Bedhead/random), IFS/flame fractals (11 variations + Barnsley/Sierpinski/dragon), contour extraction (math/gaussian/scalar fields), line envelopes (hyperbolic/diamond/string art/parabolic/cardioid), spline waves (physics/random walk/evolving), polar/ribbons (ribbon fills, concentric ribbons, polar grid), moire (oil slick/metallic/rotated/concentric/surface contour), cloth/drape/braid (boundary curve interpolation with radial noise, perspective projection, multi-strand weave)
 - **Shading** — polygon hatching (hatch, crosshatch, shade_triangle/quad), stipple fills (poisson/grid/jittered/random), dilation fills (concentric inset polygons via Shapely buffer)
 - **Sampling** — Poisson disk, Voronoi/Delaunay tessellation
 - **Symmetry** — wallpaper groups, mandala (cyclic/dihedral), Droste/mirror_slice
 - **3D** — full render pipeline: camera, projection, shapes with textures, hidden line removal, NPR sketch rendering (lighting, curvature-driven hatching, silhouette extraction, STL loader)
 - **CV/Halftone** — crosshatch, line scan, edge detection, morphological halftone, dot grid (BW + CMYK), mezzotint (importance-sampled stippling), voronoi stipple, spiral portrait, image loading/preprocessing
+- **CV/Texture** — gradient warp (death textures with density control), portrait warp (Bradway technique), integral warp (1D marginal CDF redistribution), Laplacian pyramid decomposition, Laplacian pyramid blending, repeat blur bands
+- **CV/Datasets** — auto-downloading image datasets (DTD — 47 categories, 5640 textures)
 - **CV/Dithering** — Floyd-Steinberg, Stucki, Jarvis-Judice-Ninke, Atkinson, dither-to-lines
 - **Effects** — easing library (20+ functions), metaballs (single/field/animated)
 - **I/O** — SVG write (Inkscape layers), provenance tracking
 
 ### Missing (by priority)
 1. **CV/Halftone (remaining)** — CMYK crosshatch, wiggle/rotated line scan, delaunay shade, sphere halftone, Hilbert curve halftone, directional masks
-2. **CV/Texture** — Laplacian pyramid decomposition, repeat-blur frequency bands, Voronoi-Laplacian "snake skin" rendering
+2. **CV/Texture (remaining)** — Voronoi-Laplacian "snake skin" rendering
 3. **Moire / 3D surface projection** — project patterns onto bumpy surfaces for interference effects
 4. **Warp** — force-directed grid, fluid warping, grid shifting, schism grid, refraction
-5. **Effects / Simulation** — cloth, lavalamp, glass distortion, bubbles, ghost, smoke, orbits
+5. **Effects / Simulation** — lavalamp, glass distortion, bubbles, ghost, smoke, orbits (cloth drape/braid done in gen/cloth.py — spring/mass physics cloth remains)
 6. **3D extras** — sphere primitive, anaglyph stereo, suggestive contours, deformable surface
 7. **SVG reader** — can write SVGs but can't read them back
 8. **CV utilities** — edges (Canny/CLAHE), segmentation (KMeans), duotone

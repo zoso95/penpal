@@ -6,3 +6,5 @@ from penpal.cv.halftone import (
     dot_grid, dot_grid_cmyk, mezzotint, voronoi_stipple, spiral_portrait,
 )
 from penpal.cv import dither
+from penpal.cv import texture
+from penpal.cv import datasets
