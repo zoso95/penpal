@@ -714,10 +714,493 @@ def repeat_blur_bands(
 
 
 # ---------------------------------------------------------------------------
+# Ordered dither line masking
+# ---------------------------------------------------------------------------
+
+def _bayer_matrix(order: int) -> np.ndarray:
+    """Generate a Bayer ordered dither matrix.
+
+    Parameters
+    ----------
+    order : int
+        Matrix order. Size will be 2^order × 2^order.
+        0 → 1×1, 1 → 2×2, 2 → 4×4, 3 → 8×8, 4 → 16×16, etc.
+
+    Returns
+    -------
+    (2^order, 2^order) float array normalized to [0, 1).
+    """
+    m = np.array([[0]], dtype=int)
+    for _ in range(order):
+        m = np.block([
+            [4 * m,     4 * m + 2],
+            [4 * m + 3, 4 * m + 1],
+        ])
+    return m.astype(float) / (4 ** order)
+
+
+def dither_lines(
+    paths: Paths,
+    image: np.ndarray,
+    bayer_order: int = 3,
+    block_size: float = 8.0,
+    gamma: float = 1.0,
+    invert: bool = True,
+    threshold_bias: float = 0.0,
+    min_segment: int = 2,
+    smooth_sigma: float = 0.0,
+    equalize: bool = True,
+) -> Paths:
+    """Mask line segments using ordered (Bayer) dithering against image brightness.
+
+    Takes any set of lines (from portrait_warp, gradient_warp, etc.) and
+    drops segments where the image is bright, keeps segments where it's dark.
+    The Bayer matrix provides spatially-varying thresholds so you get smooth
+    tonal gradients instead of hard cutoffs.
+
+    By default, histogram-equalizes the image so the full Bayer tonal range
+    is used evenly — this is critical for images with skewed histograms
+    (e.g. mostly dark photos).
+
+    Parameters
+    ----------
+    paths : Paths
+        Input lines (in pixel coordinates).
+    image : (H, W) grayscale [0, 255]
+        Image to sample brightness from.
+    bayer_order : int
+        Dither matrix order. 2 → 4×4, 3 → 8×8, 4 → 16×16, 5 → 32×32.
+        Higher = more tonal levels, subtler patterns.
+    block_size : float
+        How many pixels each Bayer cell spans. Larger = coarser dither pattern.
+        Controls the "grain" of the dithering.
+    gamma : float
+        Gamma correction on ink density before thresholding.
+        < 1.0 = more white space (expand highlights).
+        > 1.0 = more ink (expand shadows, darker overall).
+    invert : bool
+        If True (default), dark image regions → keep lines.
+        If False, bright regions → keep lines.
+    threshold_bias : float
+        Shift all thresholds by this amount (-1 to 1).
+        Negative = keep more lines (darker), positive = drop more (lighter).
+    min_segment : int
+        Minimum points in a kept segment.
+    smooth_sigma : float
+        Pre-blur the image before sampling. 0 = use image as-is.
+    equalize : bool
+        If True (default), histogram-equalize the image before dithering.
+        This ensures the full Bayer range produces visible tonal variation
+        regardless of the image's native brightness distribution.
+
+    Returns
+    -------
+    Paths with segments removed based on ordered dithering.
+    """
+    bayer = _bayer_matrix(bayer_order)
+    bayer_size = bayer.shape[0]
+
+    img = image.astype(float)
+    if smooth_sigma > 0:
+        img = ndimage.gaussian_filter(img, sigma=smooth_sigma)
+
+    if equalize:
+        # Rank-based equalization: map each pixel to its percentile rank
+        # This flattens the histogram so every Bayer threshold gets
+        # equal probability of being hit
+        flat = img.ravel()
+        order = flat.argsort().argsort()  # rank of each pixel
+        eq = (order.astype(float) / max(len(order) - 1, 1)) * 255.0
+        img = eq.reshape(img.shape)
+
+    h, w = img.shape
+    out = []
+
+    for line in paths.lines:
+        if len(line) < 2:
+            continue
+
+        xs = line[:, 0]
+        ys = line[:, 1]
+
+        xs_c = np.clip(xs, 0, w - 1)
+        ys_c = np.clip(ys, 0, h - 1)
+
+        # Bilinear interpolation of image brightness
+        brightness = ndimage.map_coordinates(
+            img, [ys_c, xs_c], order=1, mode='nearest'
+        )
+
+        # Normalize to [0, 1]
+        ink = brightness / 255.0
+        if invert:
+            ink = 1.0 - ink
+
+        # Apply gamma
+        if gamma != 1.0:
+            ink = np.clip(ink, 0, 1) ** gamma
+
+        # Look up Bayer threshold at each point's position
+        bx = (np.floor(xs_c / block_size) % bayer_size).astype(int)
+        by = (np.floor(ys_c / block_size) % bayer_size).astype(int)
+        thresholds = bayer[by, bx] + threshold_bias
+
+        # Keep points where ink density exceeds threshold
+        mask = ink > thresholds
+
+        # Split into contiguous segments
+        _extract_segments(line, mask, out, min_pts=min_segment)
+
+    return Paths(out)
+
+
+def dither_warp(
+    image: np.ndarray,
+    # Warp params
+    n_lines: int | tuple[int, int] = 500,
+    grad_smooth: float = 1.5,
+    warp_strength: float = -1.0,
+    detail_strength: float = 1.0,
+    detail_smooth: float = 1.0,
+    horizontal: bool = True,
+    vertical: bool = True,
+    stride: int = 1,
+    # Dither params
+    bayer_order: int = 3,
+    block_size: float = 8.0,
+    dither_gamma: float = 1.0,
+    threshold_bias: float = 0.0,
+    smooth_sigma: float = 0.0,
+    min_segment: int = 3,
+    equalize: bool = True,
+    # Brightness source
+    brightness_image: np.ndarray | None = None,
+    brightness_gamma: float = 1.0,
+) -> Paths:
+    """Gradient-warped mesh with ordered dither tonal masking.
+
+    Combines the mesh warping from portrait_warp with Bayer matrix
+    ordered dithering for tonal control. The warp captures form/flow,
+    the dither captures tone.
+
+    Parameters
+    ----------
+    image : (H, W) grayscale [0, 255]
+        Image for gradient computation and (optionally) brightness sampling.
+    n_lines : int or (rows, cols)
+        Mesh resolution.
+    grad_smooth : float
+        Gradient field smoothness.
+    warp_strength : float
+        Mesh warp magnitude. Negative = toward dark regions.
+    detail_strength : float
+        Detail pass warp strength.
+    detail_smooth : float
+        Detail gradient smoothness.
+    horizontal : bool
+        Include horizontal mesh lines.
+    vertical : bool
+        Include vertical mesh lines.
+    stride : int
+        Draw every Nth mesh line.
+    bayer_order : int
+        Dither matrix order (2=4×4, 3=8×8, 4=16×16, 5=32×32).
+    block_size : float
+        Pixels per Bayer cell. Larger = coarser dither pattern.
+    dither_gamma : float
+        Gamma on ink density before thresholding.
+        < 1 = more white space, > 1 = more ink.
+    threshold_bias : float
+        Global threshold shift. Negative = darker, positive = lighter.
+    smooth_sigma : float
+        Pre-blur the brightness image for dither sampling.
+    min_segment : int
+        Minimum segment length to keep.
+    equalize : bool
+        Histogram-equalize brightness before dithering (default True).
+    brightness_image : (H, W), optional
+        Separate image for brightness sampling. If None, uses ``image``.
+    brightness_gamma : float
+        Gamma correction on the brightness image before dithering.
+
+    Returns
+    -------
+    Paths in pixel coordinates.
+    """
+    h, w = image.shape
+    if isinstance(n_lines, int):
+        n_lines = (n_lines, n_lines)
+
+    # Build and warp mesh
+    mesh = make_mesh(image.shape, n_lines)
+    grad = estimate_gradient(image, grad_smooth=grad_smooth, postprocessing="scale")
+    mesh = warp_mesh(mesh, grad, strength=warp_strength)
+
+    # Detail warp
+    detail_img = (
+        ndimage.minimum_filter(image, size=5)
+        - ndimage.gaussian_filter(image, sigma=1)
+    )
+    detail_grad = estimate_gradient(
+        detail_img, grad_smooth=detail_smooth, postprocessing="scale"
+    )
+    mesh = warp_mesh(mesh, detail_grad, strength=detail_strength)
+
+    # Extract lines from mesh
+    lines = mesh_to_paths(mesh, horizontal=horizontal, vertical=vertical,
+                          stride=stride)
+
+    # Prepare brightness image
+    bright = brightness_image if brightness_image is not None else image
+    if brightness_gamma != 1.0:
+        bright = np.clip(bright / 255, 0, 1) ** brightness_gamma * 255
+
+    # Apply ordered dither masking
+    return dither_lines(
+        lines, bright,
+        bayer_order=bayer_order,
+        block_size=block_size,
+        gamma=dither_gamma,
+        threshold_bias=threshold_bias,
+        smooth_sigma=smooth_sigma,
+        min_segment=min_segment,
+        equalize=equalize,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Crosshatch density — line-set tonal control
+# ---------------------------------------------------------------------------
+
+def _van_der_corput(n: int) -> np.ndarray:
+    """Van der Corput sequence: assign priorities in [0, 1) to n items.
+
+    Items with lower priority appear first. The sequence fills the
+    interval evenly — first the midpoints, then quarter-points, etc.
+    """
+    if n == 0:
+        return np.array([])
+    priorities = np.zeros(n)
+    for i in range(n):
+        val = 0.0
+        denom = 2.0
+        k = i
+        while k > 0:
+            val += (k % 2) / denom
+            denom *= 2
+            k //= 2
+        priorities[i] = val
+    return priorities
+
+
+def density_mask(
+    mesh: np.ndarray,
+    image: np.ndarray,
+    stride: int = 1,
+    v_weight: float = 0.5,
+    gamma: float = 1.0,
+    equalize: bool = True,
+    smooth_sigma: float = 0.0,
+    min_segment: int = 3,
+) -> Paths:
+    """Mask mesh lines using crosshatch density buildup.
+
+    Instead of a Bayer matrix, controls tone by progressively adding
+    lines as the image gets darker. Lines within each direction are
+    interleaved (Van der Corput sequence) for even spatial fill.
+
+    Tonal progression (with default v_weight=0.5):
+      white → sparse V → dense V → sparse V+H → full crosshatch
+
+    Parameters
+    ----------
+    mesh : (N, M, 2)
+        Mesh coordinates [row, col].
+    image : (H, W) grayscale [0, 255]
+        Image to sample brightness from.
+    stride : int
+        Use every Nth mesh line.
+    v_weight : float
+        Fraction of tonal range allocated to vertical lines.
+        0.5 = V fills [0, 0.5], H fills [0.5, 1.0].
+        Higher = V lines dominate more of the tonal range.
+    gamma : float
+        Gamma on ink density. < 1 = more highlights, > 1 = darker.
+    equalize : bool
+        Histogram-equalize before masking (strongly recommended).
+    smooth_sigma : float
+        Pre-blur the image.
+    min_segment : int
+        Minimum segment length to keep.
+
+    Returns
+    -------
+    Paths in pixel coordinates.
+    """
+    n_rows, n_cols = mesh.shape[:2]
+    img = image.astype(float)
+    if smooth_sigma > 0:
+        img = ndimage.gaussian_filter(img, sigma=smooth_sigma)
+
+    if equalize:
+        flat = img.ravel()
+        order = flat.argsort().argsort()
+        img = (order.astype(float) / max(len(order) - 1, 1) * 255.0).reshape(img.shape)
+
+    h, w = img.shape
+
+    # Assign priorities to each line index
+    # V lines use indices 0..n_cols-1, get thresholds in [0, v_weight)
+    # H lines use indices 0..n_rows-1, get thresholds in [v_weight, 1.0)
+    v_indices = list(range(0, n_cols, stride))
+    h_indices = list(range(0, n_rows, stride))
+
+    v_priorities = _van_der_corput(len(v_indices))
+    h_priorities = _van_der_corput(len(h_indices))
+
+    # Map to threshold ranges
+    v_thresholds = v_priorities * v_weight
+    h_thresholds = v_weight + h_priorities * (1.0 - v_weight)
+
+    out = []
+
+    def _process_line(line_pts, threshold):
+        """Mask a single line: keep segments where ink > threshold."""
+        xs = line_pts[:, 0]
+        ys = line_pts[:, 1]
+        xs_c = np.clip(xs, 0, w - 1)
+        ys_c = np.clip(ys, 0, h - 1)
+
+        brightness = ndimage.map_coordinates(
+            img, [ys_c, xs_c], order=1, mode='nearest'
+        )
+        ink = 1.0 - brightness / 255.0
+        if gamma != 1.0:
+            ink = np.clip(ink, 0, 1) ** gamma
+
+        mask = ink > threshold
+        _extract_segments(line_pts, mask, out, min_pts=min_segment)
+
+    # Vertical lines (mesh columns)
+    for idx, vi in enumerate(v_indices):
+        col = mesh[:, vi, :]  # (N, 2) in [row, col]
+        line_pts = np.column_stack([col[:, 1], col[:, 0]])  # [x, y]
+        _process_line(line_pts, v_thresholds[idx])
+
+    # Horizontal lines (mesh rows)
+    for idx, hi in enumerate(h_indices):
+        row = mesh[hi, :, :]  # (M, 2) in [row, col]
+        line_pts = np.column_stack([row[:, 1], row[:, 0]])  # [x, y]
+        _process_line(line_pts, h_thresholds[idx])
+
+    return Paths(out)
+
+
+def density_warp(
+    image: np.ndarray,
+    # Warp params
+    n_lines: int | tuple[int, int] = 500,
+    grad_smooth: float = 1.5,
+    warp_strength: float = -1.0,
+    detail_strength: float = 1.0,
+    detail_smooth: float = 1.0,
+    stride: int = 1,
+    # Density params
+    v_weight: float = 0.5,
+    gamma: float = 1.0,
+    equalize: bool = True,
+    smooth_sigma: float = 0.0,
+    min_segment: int = 3,
+    # Brightness source
+    brightness_image: np.ndarray | None = None,
+    brightness_gamma: float = 1.0,
+) -> Paths:
+    """Gradient-warped mesh with crosshatch density tonal control.
+
+    Like dither_warp but instead of a Bayer matrix, controls tone by
+    progressively including more lines as the image gets darker.
+    V lines fill first (light tones), then H lines add crosshatch
+    (dark tones). Within each direction, lines are interleaved for
+    even spatial distribution (no grid artifacts).
+
+    Tonal progression:
+      white → sparse V → all V → V + sparse H → full crosshatch
+
+    Parameters
+    ----------
+    image : (H, W) grayscale [0, 255]
+        Image for gradient computation and brightness sampling.
+    n_lines : int or (rows, cols)
+        Mesh resolution.
+    grad_smooth : float
+        Gradient field smoothness.
+    warp_strength : float
+        Mesh warp magnitude. Negative = toward dark.
+    detail_strength : float
+        Detail pass warp strength.
+    detail_smooth : float
+        Detail gradient smoothness.
+    stride : int
+        Use every Nth mesh line.
+    v_weight : float
+        Fraction of tonal range for V lines before H lines start.
+        0.5 = equal split. Higher = V lines dominate more.
+    gamma : float
+        Gamma on ink density. < 1 = more highlights, > 1 = darker.
+    equalize : bool
+        Histogram-equalize brightness (default True).
+    smooth_sigma : float
+        Pre-blur brightness image.
+    min_segment : int
+        Minimum segment length.
+    brightness_image : (H, W), optional
+        Separate image for brightness sampling. If None, uses ``image``.
+    brightness_gamma : float
+        Gamma on brightness image before masking.
+
+    Returns
+    -------
+    Paths in pixel coordinates.
+    """
+    if isinstance(n_lines, int):
+        n_lines = (n_lines, n_lines)
+
+    # Build and warp mesh
+    mesh = make_mesh(image.shape, n_lines)
+    grad = estimate_gradient(image, grad_smooth=grad_smooth, postprocessing="scale")
+    mesh = warp_mesh(mesh, grad, strength=warp_strength)
+
+    # Detail warp
+    detail_img = (
+        ndimage.minimum_filter(image, size=5)
+        - ndimage.gaussian_filter(image, sigma=1)
+    )
+    detail_grad = estimate_gradient(
+        detail_img, grad_smooth=detail_smooth, postprocessing="scale"
+    )
+    mesh = warp_mesh(mesh, detail_grad, strength=detail_strength)
+
+    # Prepare brightness image
+    bright = brightness_image if brightness_image is not None else image
+    if brightness_gamma != 1.0:
+        bright = np.clip(bright / 255, 0, 1) ** brightness_gamma * 255
+
+    return density_mask(
+        mesh, bright,
+        stride=stride,
+        v_weight=v_weight,
+        gamma=gamma,
+        equalize=equalize,
+        smooth_sigma=smooth_sigma,
+        min_segment=min_segment,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _extract_segments(line, mask, output):
+def _extract_segments(line, mask, output, min_pts=2):
     """Split a polyline into contiguous segments where mask is True."""
     if not np.any(mask):
         return
@@ -728,5 +1211,5 @@ def _extract_segments(line, mask, output):
     ends = np.where(diffs == -1)[0]
 
     for s, e in zip(starts, ends):
-        if e - s >= 2:
+        if e - s >= min_pts:
             output.append(line[s:e])
